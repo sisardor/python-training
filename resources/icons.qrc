@@ -1,0 +1,8 @@
+<RCC>
+	<qresource>
+		<file>Transform.jpg</file>
+		<file>Camera.jpg</file>
+		<file>Light.jpg</file>
+		<file>thumbnail-missing.svg</file>
+	</qresource>
+</RCC>
