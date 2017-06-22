@@ -4,5 +4,7 @@
 		<file>Camera.jpg</file>
 		<file>Light.jpg</file>
 		<file>thumbnail-missing.svg</file>
+		<file>icon-chevrondown.svg</file>
+		<file>icon-chevronright.svg</file>
 	</qresource>
 </RCC>

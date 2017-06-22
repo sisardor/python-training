@@ -1,4 +1,6 @@
 import sys
+import traceback
+
 from views.mainUI import MainUI
 from utils.json2obj import json2obj
 from models.Node import Node
@@ -28,6 +30,12 @@ except:
     print "Cannot import shiboken."
     pass
 
+import sys
+sys.path.append("/Users/zeromax/Github/pydraulx")
+
+from connection import mavis as mavis
+from connection import pyside_LoginDialog
+
 def getMayaWindow():
     '''
     Get the maya main window as a QMainWindow instance
@@ -51,6 +59,7 @@ class App(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(App, self).__init__(parent)
         print "App"
+        self.conn = self.db_connect()
         self.ui = MainUI()
         self.ui.show()
 
@@ -69,12 +78,51 @@ class App(QtGui.QMainWindow):
         childNode0 = Node('LeftPirateleg', entity, rootNode)
         childNode1 = Node('RightLeg', entity1, rootNode)
         childNode2 = Node('RightFoot', entity2, childNode1)
-        childNode3 = Node('Xxxree', entity3, rootNode)
+        childNode3 = Node('Xxxree', entity3, childNode2)
         childNode4 = Node('kldjskfds', entity4, childNode1)
 
         tree = TreeModel(rootNode)
         self.ui.uiTree.setModel(tree)
         print tree
+
+    def db_connect(self):
+        '''
+        connect to the database. if getMavis return None show login dialog
+        '''
+        try:
+            # conn=mavis.Mavis(username=username, password=password)
+            conn = mavis.getMavis()
+            retry = False
+            # dont like whiles....but
+            while not conn:
+                try:
+                    # show the loging dialog
+                    dialog = pyside_LoginDialog.LoginDialog(parent=self, retry=retry)
+                    rval = dialog.exec_()
+                    if rval == QtGui.QDialog.Rejected:
+                        break
+
+                    self.username = dialog.username
+                    passwd = dialog.password
+                    # print outcome so we know something is happening
+                    print "username: %s password %s" % (self.username, passwd)
+                    conn = mavis.getMavis(username=self.username, password=passwd)
+                    # set user in the UI
+                    self.ui.setUser(self.username)
+                    retry = True
+                    break
+                except Exception, e:
+                    print "invalid user/passwd"
+                    print e
+                    retry = True
+                    continue
+            return conn
+        except Exception, e:
+            print mavis.__file__
+            print e
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+            traceback.print_stack()
 
 def run():
     #get the current (Global) QApplication instance OR

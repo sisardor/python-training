@@ -11,6 +11,7 @@ except Exception as e:
 
 path = os.path.dirname(os.path.abspath(__file__))
 print path
+import resources.icons
 
 style = """
 
@@ -53,15 +54,14 @@ QTreeView {
  QTreeView::branch:has-children:!has-siblings:closed,
  QTreeView::branch:closed:has-children:has-siblings {
          border-image: none;
-         image: url(resources/icon-chevronright.svg);
+         image: url(:/icon-chevronright.svg)!important;
  }
  QTreeView::branch:open:has-children:!has-siblings,
  QTreeView::branch:open:has-children:has-siblings  {
          border-image: none;
-         image: url(resources/icon-chevrondown.svg);
+         image: url(:/icon-chevrondown.svg)!important;
  }
- QTreeView::branch:open
-
+ 
 """
 
 class MainUI(QtGui.QMainWindow):
