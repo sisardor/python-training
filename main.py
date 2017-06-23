@@ -1,7 +1,8 @@
 import sys
 import traceback
 
-from views.mainUI import MainUI
+from mainController import MainController
+# from utils.borderlayout import BorderLayout
 from utils.json2obj import json2obj
 from models.Node import Node
 from models.TreeModel import TreeModel
@@ -21,17 +22,17 @@ try:
     import maya.OpenMayaUI as mui
     maya=True
 except ImportError, e:
-    print "Cannot import Maya python modules."
+    print ("Cannot import Maya python modules.")
     STANDALONE_MODE=True
 
 try:
     import shiboken
 except:
-    print "Cannot import shiboken."
+    print("Cannot import shiboken.")
     pass
 
 import sys
-sys.path.append("/Users/zeromax/Github/pydraulx")
+sys.path.append("/mnt/x19/mavisdev/mavis_scripts/pydraulx")
 
 from connection import mavis as mavis
 from connection import pyside_LoginDialog
@@ -55,12 +56,12 @@ def getMayaWindow():
         return None
 
 
-class App(QtGui.QMainWindow):
+class App(QtGui.QWidget):
     def __init__(self, parent=None):
         super(App, self).__init__(parent)
         print "App"
-        self.conn = self.db_connect()
-        self.ui = MainUI()
+        # self.conn = self.db_connect()
+        self.ui = MainController()
         self.ui.show()
 
         entity = json2obj(
@@ -83,7 +84,7 @@ class App(QtGui.QMainWindow):
 
         tree = TreeModel(rootNode)
         self.ui.uiTree.setModel(tree)
-        print tree
+        # print(tree)
 
     def db_connect(self):
         '''
@@ -105,7 +106,7 @@ class App(QtGui.QMainWindow):
                     self.username = dialog.username
                     passwd = dialog.password
                     # print outcome so we know something is happening
-                    print "username: %s password %s" % (self.username, passwd)
+                    print("username: %s password %s" % (self.username, passwd))
                     conn = mavis.getMavis(username=self.username, password=passwd)
                     # set user in the UI
                     self.ui.setUser(self.username)

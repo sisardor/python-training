@@ -1,114 +1,54 @@
-import os, sys
-from utils.pyside_dynamic import loadUi
-from PySide import QtGui, QtCore
+# -*- coding: utf-8 -*-
 
-#from views.mainWindow import Ui_MainWindow
+# Form implementation generated from reading ui file 'ui/main.ui'
+#
+# Created by: PyQt4 UI code generator 4.12
+#
+# WARNING! All changes made in this file will be lost!
+
+from PySide import QtCore, QtGui
 
 try:
-    from PySide.QtUiTools import QUiLoader
-except Exception as e:
-    print e
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
 
-path = os.path.dirname(os.path.abspath(__file__))
-print path
-import resources.icons
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
-style = """
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName(_fromUtf8("MainWindow"))
+        MainWindow.resize(800, 600)
+        self.centralwidget = QtGui.QWidget(MainWindow)
+        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        # self.uiTree = QtGui.QTreeView(self.centralwidget)
+        # self.uiTree.setGeometry(QtCore.QRect(20, 10, 551, 431))
+        # self.uiTree.setObjectName(_fromUtf8("uiTree"))
+        self.pushButton = QtGui.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(280, 491, 113, 41))
+        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+        self.radioButton = QtGui.QRadioButton(self.centralwidget)
+        self.radioButton.setGeometry(QtCore.QRect(460, 470, 100, 20))
+        self.radioButton.setObjectName(_fromUtf8("radioButton"))
+        self.toolButton = QtGui.QToolButton(self.centralwidget)
+        self.toolButton.setGeometry(QtCore.QRect(100, 520, 26, 22))
+        self.toolButton.setObjectName(_fromUtf8("toolButton"))
+        MainWindow.setCentralWidget(self.centralwidget)
 
+        self.retranslateUi(MainWindow)
+        QtCore.QObject.connect(self.pushButton, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.mySlot)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-QTreeView QHeaderView::section {
-     background-color: #2c2f30;
-     color: #AAAAAA;
-     padding-left: 10px;
-     border: 1px solid #3e4041;
-     border-left: 0px;
-     border-right: 0px;
-     font-weight: 700;
- }
-QTreeView {
-    background: #2c2f30;
-    color: #AAAAAA;
-}
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.pushButton.setText(_translate("MainWindow", "PushButton", None))
+        self.radioButton.setText(_translate("MainWindow", "RadioButton", None))
+        self.toolButton.setText(_translate("MainWindow", "...", None))
 
- QTreeView::branch {
-    border-bottom: 1px solid #3e4041;
- }
- QTreeView::branch:selected {
-    background-color: #575858 !important;
-    color: #fff !important;
-    fill: white;
- }
- QTreeView::item:selected {
-    background-color: #575858 !important;
-    color: #fff !important;
- }
- QTreeView::item {
-    height: 35px;
-    width: 250px;
-    border-bottom: 1px solid #3e4041;
- }
- QTreeView::branch {
-    width: 175px;
- }
-
- QTreeView::branch:has-children:!has-siblings:closed,
- QTreeView::branch:closed:has-children:has-siblings {
-         border-image: none;
-         image: url(:/icon-chevronright.svg)!important;
- }
- QTreeView::branch:open:has-children:!has-siblings,
- QTreeView::branch:open:has-children:has-siblings  {
-         border-image: none;
-         image: url(:/icon-chevrondown.svg)!important;
- }
- 
-"""
-
-class MainUI(QtGui.QMainWindow):
-    """docstring for MainUI"""
-    def __init__(self, parent = None):
-        super(MainUI, self).__init__(parent)
-        loadUi(os.path.join(path, 'ui/main.ui'), self)
-        # self.setupUi(self)
-        self.uiTree.setIconSize(QtCore.QSize(37, 23))
-        self.filelHeader = self.uiTree.header()
-        self.filelHeader.setDefaultSectionSize(175)
-        self.uiTree.setStyleSheet(style)
-
-    @QtCore.Slot()
-    def mySlot(self):
-        print "Hello"
-        self.pushButton.setText("Click me again")
-
-    def closeEvent(self, event):
-        print "closeEvent"
-        event.accept()
-        # pass
-
-
-
-
-
-# import os
-# try:
-#     from PySide import QtGui, QtCore
-#     from PySide.QtUiTools import QUiLoader
-# except Exception as e:
-#     from PyQt4 import QtGui, QtCore
-#     from PyQt4 import uic
-#
-# path = os.path.dirname(os.path.abspath(__file__))
-#
-# def loadUiWidget(uifilename, parent=None):
-#     loader = QUiLoader()
-#     uifile = QtCore.QFile(uifilename)
-#     uifile.open(QtCore.QFile.ReadOnly)
-#     ui = loader.load(uifile, parent)
-#     uifile.close()
-#     return ui
-#
-# try:
-#     base, form = uic.loadUiType(os.path.join(path, 'ui/main.ui'))
-# except:
-#     print "Using QUiLoader"
-#     base = QUiLoader().load(os.path.join(path, 'ui/main.ui'))
