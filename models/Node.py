@@ -12,7 +12,7 @@ class Node(object):
             parent.addChild(self)
 
     def typeInfo(self):
-        return self.entity.type
+        return self.entity['type']
 
     def addChild(self, child):
         self.children.append(child)
