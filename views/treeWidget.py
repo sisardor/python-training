@@ -17,7 +17,7 @@ class TreeWidget(QtGui.QTreeView):
 
 if __name__ == '__main__':
     from utils.json2obj import json2obj
-    from models.Node import Node
+    from models.Node import Entity
     from models.TreeModel import TreeModel
     app = QtGui.QApplication(sys.argv)
 
@@ -34,12 +34,12 @@ if __name__ == '__main__':
     entity4 = json2obj(
         '{"category":"tasks","path":"/mnt/x19/mavisdev/projects/geotest/sequence/mdm_0202/shots/mdm_0202_0100/assets/tuktuka/model/tuktuk_model","name":"tuktuk_model","description":"published plate 6310","latest":"58c6ffe6e925cc00016a6b58","fileImportPath":"","isGlobal":false,"project":"geotest","fields":{"priority":"high","status":"revised","grouping":"vehi","comp_status":"Waiting","prod_status":"MEDIUM"},"createdBy":"trevor","createdAt":"2017-04-13T22:08:33.983Z","updatedAt":"2017-04-18T20:35:28.557Z","id":"589b4f9dc599d10001375de9","type":"model","mediaIds":[],"parentId":"589b4f10c599d10001375de2","isTest":false}')
 
-    rootNode = Node('Hips')
-    childNode0 = Node('LeftPirateleg', entity, rootNode)
-    childNode1 = Node('RightLeg', entity1, rootNode)
-    childNode2 = Node('RightFoot', entity2, childNode1)
-    childNode3 = Node('Xxxree', entity3, childNode2)
-    childNode4 = Node('kldjskfds', entity4, childNode1)
+    rootNode = Entity('Hips')
+    childNode0 = Entity('LeftPirateleg', entity, rootNode)
+    childNode1 = Entity('RightLeg', entity1, rootNode)
+    childNode2 = Entity('RightFoot', entity2, childNode1)
+    childNode3 = Entity('Xxxree', entity3, childNode2)
+    childNode4 = Entity('kldjskfds', entity4, childNode1)
     treeModel = TreeModel(rootNode)
     print treeModel
     print treeWidget

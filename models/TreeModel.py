@@ -1,27 +1,21 @@
 from PySide import QtGui, QtCore, QtNetwork
 import resources.icons
-from Node import Node
-from models.BaseModel import BaseModel
+from Entity import Entity
+from models.BaseModel import DataSource
+from utils.bcolors import bcolors
 from utils.json2obj import json2obj
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[1;32m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
-
-class TreeModel(QtCore.QAbstractItemModel, BaseModel):
+class TreeModel(QtCore.QAbstractItemModel, DataSource):
     """docstring for TreeModel"""
-
-    def __init__(self, root, xTotalCount, parent=None, *args, **kwargs):
+    def __init__(self, root, parent=None, *args, **kwargs):
         super(TreeModel, self).__init__(parent)
-        BaseModel.__init__(self, *args, **kwargs)
+        super(DataSource, self).__init__(*args, **kwargs)
         self.rootNode = root
+        print("Project: %s"%(self.rootNode.getProjectName()))
+        # if self.rootNode._parent() is None and self.rootNode.entity is None:
+        #     self.rootNode.setDataSource(self.getDataSource())
+        #     print 'Fetch project meta'
 
         self.numRows = 0
         self.xTotalCount = self.getXtotalCount()
@@ -30,10 +24,10 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
         node = self.getNode(index)
         if node.parent is None:
             return True
+
         return False
         if node.entity['$dependencyCount'] != 0:
             return True
-        return False
 
     def canFetchMore(self, index):
         """
@@ -58,6 +52,21 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
         """
         index=QModelIndex
         """
+
+        # node = self.getNode(index)
+        # if node.parent is not None:
+        #     print "expend -> ", node.entity['id']
+        #     data = self.rootNode.fetchChildrenX(node.entity['id'])
+        #     print index.row(), len(data)
+        #
+        #     self.beginInsertRows(index, node.childCount(), node.childCount())
+        #     for entity in data:
+        #         child_node = Entity("untitled", entity)
+        #         node.insertChild(0, child_node)
+        #
+        #     self.endInsertRows()
+        #     return
+
         max_fetch = 50
         remainder_rows = self.xTotalCount - self.numRows
         rows_to_fetch = min(max_fetch, remainder_rows)
@@ -67,23 +76,14 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
             self.beginInsertRows(QtCore.QModelIndex(), self.numRows, self.numRows + rows_to_fetch - 1)
 
             data = self.fetch(skip=self.numRows, limit=rows_to_fetch)
+            # self.xTotalCount = self.rootNode.getXTotalCount()
 
-            # print data
             jj = 0
             for entity in data:
-                # print entity
                 tmp_count = self.numRows + jj
-                child_node = Node("untitled", entity)
+                child_node = Entity("untitled", entity)
                 self.rootNode.insertChild(tmp_count, child_node)
                 jj += 1
-
-            # for i in range(rows_to_fetch):
-            #     tmp_count = self.numRows  + i
-            #     entity = json2obj(
-            #         '{"dependencyCount":0,"category":"tasks","path":"/mnt/x19/mavisdev/projects/geotest/sequence/mdm_0202/shots/mdm_0202_0100/assets/tuktuka/model/tuktuk_model","name":"untitled-' + str(
-            #             tmp_count + 1) + '","description":"published plate 6310","latest":"58c6ffe6e925cc00016a6b58","fileImportPath":"","isGlobal":false,"project":"geotest","fields":{"priority":"high","status":"revised","grouping":"vehi","comp_status":"Waiting","prod_status":"MEDIUM"},"createdBy":"trevor","createdAt":"2017-04-13T22:08:33.983Z","updatedAt":"2017-04-18T20:35:28.557Z","id":"589b4f9dc599d10001375de9","type":"model","mediaIds":[],"parentId":"589b4f10c599d10001375de2","isTest":false}')
-            #     child_node = Node("untitled", entity)
-            #     self.rootNode.insertChild(tmp_count, child_node)
 
             self.endInsertRows()
             self.numRows += rows_to_fetch
@@ -175,7 +175,7 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
             entity = json2obj(
                 '{"dependencyCount":0,"category":"tasks","path":"/mnt/x19/mavisdev/projects/geotest/sequence/mdm_0202/shots/mdm_0202_0100/assets/tuktuka/model/tuktuk_model","name":"untitled-' + str(count_tmp) + '","description":"published plate 6310","latest":"58c6ffe6e925cc00016a6b58","fileImportPath":"","isGlobal":false,"project":"geotest","fields":{"priority":"high","status":"revised","grouping":"vehi","comp_status":"Waiting","prod_status":"MEDIUM"},"createdBy":"trevor","createdAt":"2017-04-13T22:08:33.983Z","updatedAt":"2017-04-18T20:35:28.557Z","id":"589b4f9dc599d10001375de9","type":"model","mediaIds":[],"parentId":"589b4f10c599d10001375de2","isTest":false}')
             # Node('New', entity, self.rootNode)
-            child_node = Node("untitled" + str(child_count), entity)
+            child_node = Entity("untitled" + str(child_count), entity)
             success = parentNode.insertChild(position, child_node)
         self.endInsertRows()
 
@@ -194,7 +194,7 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
         if index.isValid():
             if role == QtCore.Qt.EditRole:
                 node = index.internalPointer()
-                node.setName(value)
+                node.setProjectName(value)
                 self.dataChanged.emit(index, index)
                 return True
         return False
@@ -228,7 +228,7 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
 
     def parent(self, index):
         node = self.getNode(index)
-        parentNode = node.parentX()
+        parentNode = node._parent()
 
         if parentNode == self.rootNode:
             return QtCore.QModelIndex()
@@ -245,9 +245,6 @@ class TreeModel(QtCore.QAbstractItemModel, BaseModel):
             return QtCore.QModelIndex()
 
 
-
-
-
 if __name__ == '__main__':
     import sys
     import pprint
@@ -255,7 +252,7 @@ if __name__ == '__main__':
     from connection import mavis as mavis
 
     conn = mavis.getMavis(username='cdeng', password='ASD123qwe')
-    response = conn.get('Entities/5930b32da62efe929f457a22')
+    response = conn.get('Entities/rampage')
     pp = pprint.PrettyPrinter(indent=4)
 
 
