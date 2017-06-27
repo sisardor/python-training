@@ -53,7 +53,7 @@ class DataSource(BaseModel):
     def __init__(self, parent=None, *args, **kwargs):
         BaseModel.__init__(self, *args, **kwargs)
 
-    def getDataSource(self):
+    def _getDataSource(self):
         return self
 
     # def fetch(self,*args, **filter):

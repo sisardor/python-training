@@ -15,7 +15,6 @@ class MainController(QtGui.QMainWindow):
         loadUi(os.path.join(path, 'views/ui/mainwindow.ui'), self)
 
         rootNode = Entity(projectName='rampage')
-
         tree = TreeModel(root=rootNode, xTotalCount=626)
 
         self.ui = TreeWidget(self)

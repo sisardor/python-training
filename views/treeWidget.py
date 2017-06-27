@@ -1,7 +1,7 @@
 import os
-
+import resources.icons
 import sys
-from PySide import QtGui
+from PySide import QtGui, QtCore
 
 from utils.pyside_dynamic import loadUi
 
@@ -11,8 +11,18 @@ class TreeWidget(QtGui.QTreeView):
     def __init__(self,  parent = None, *args):
         super(TreeWidget, self).__init__(parent)
         loadUi(os.path.join(path, 'ui/ui_tree.ui'), self)
+        self.uiTree.setIconSize(QtCore.QSize(37, 23))
+        # self.filelHeader = self.uiTree.header()
+        # self.filelHeader.setDefaultSectionSize(175)
+        # self.filelHeader.resizeSection(1, 275)
+        # self.uiTree.resizeColumnToContents(1)
+        # self.uiTree.resizeColumnToContents(1)
 
-
+    def resizeEvent(self, event):
+        print "resizeEvent"
+        self.uiTree.setColumnWidth(0, 175)
+        print event
+        pass
 
 
 if __name__ == '__main__':

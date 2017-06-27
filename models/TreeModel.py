@@ -12,81 +12,60 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         super(TreeModel, self).__init__(parent)
         super(DataSource, self).__init__(*args, **kwargs)
         self.rootNode = root
-        print("Project: %s"%(self.rootNode.getProjectName()))
-        # if self.rootNode._parent() is None and self.rootNode.entity is None:
-        #     self.rootNode.setDataSource(self.getDataSource())
-        #     print 'Fetch project meta'
+
+        if self.rootNode._parent() is None and self.rootNode.entity is None:
+            self.rootNode.setDataSource(self._getDataSource())
 
         self.numRows = 0
         self.xTotalCount = self.getXtotalCount()
 
     def hasChildren(self, index):
         node = self.getNode(index)
-        if node.parent is None:
+        if node._parent() is None:
             return True
-
-        return False
-        if node.entity['$dependencyCount'] != 0:
-            return True
+        return node.hasChildren()
 
     def canFetchMore(self, index):
-        """
-        index=QModelIndex
-        """
         node = self.getNode(index)
-        # print('TreeModel -> canFetchMore \t [numRows: %s, xTotalCount: %s]'%(self.numRows, self.xTotalCount))
-        if node.parent is not None:
-            print bcolors.WARNING +  "\t false node cannot fetch" + bcolors.ENDC
-            return False
+        if node._parent() is not None and self.hasChildren(index):
+            if node.childCount() == node.entity['$dependencyCount']:
+                return False
+            return True
         if self.numRows < self.xTotalCount:
-            # print(bcolors.OKBLUE + "\t can fetch" + bcolors.ENDC)
             return True
         else:
             print(bcolors.FAIL + "\t end" + bcolors.ENDC)
             return False
 
-        return False
-
-
     def fetchMore(self, index):
-        """
-        index=QModelIndex
-        """
-
-        # node = self.getNode(index)
-        # if node.parent is not None:
-        #     print "expend -> ", node.entity['id']
-        #     data = self.rootNode.fetchChildrenX(node.entity['id'])
-        #     print index.row(), len(data)
-        #
-        #     self.beginInsertRows(index, node.childCount(), node.childCount())
-        #     for entity in data:
-        #         child_node = Entity("untitled", entity)
-        #         node.insertChild(0, child_node)
-        #
-        #     self.endInsertRows()
-        #     return
-
-        max_fetch = 50
-        remainder_rows = self.xTotalCount - self.numRows
-        rows_to_fetch = min(max_fetch, remainder_rows)
-        print bcolors.OKGREEN + "\t fetching... \t { skip: %s, limit: %s }" % (self.numRows, rows_to_fetch) + bcolors.ENDC
-        # print bcolors.OKGREEN + "\t fetching... \t rowsToFetch: %s \tremainderRows: %s \tnumRows: %s" % (rows_to_fetch, remainder_rows, self.numRows) + bcolors.ENDC
-        if rows_to_fetch > 0:
-            self.beginInsertRows(QtCore.QModelIndex(), self.numRows, self.numRows + rows_to_fetch - 1)
-
-            data = self.fetch(skip=self.numRows, limit=rows_to_fetch)
-            # self.xTotalCount = self.rootNode.getXTotalCount()
-
-            jj = 0
+        node = self.getNode(index)
+        if node._parent() is not None:
+            # print "expend -> ", node.entity['id']
+            data = self.rootNode.fetchChildren(id=node.entity['id'])
             for entity in data:
-                tmp_count = self.numRows + jj
                 child_node = Entity("untitled", entity)
-                self.rootNode.insertChild(tmp_count, child_node)
-                jj += 1
+                node.insertChild(0, child_node)
 
-            self.endInsertRows()
-            self.numRows += rows_to_fetch
+        if node._parent() is None:
+            max_fetch = 50
+            remainder_rows = self.xTotalCount - self.numRows
+            rows_to_fetch = min(max_fetch, remainder_rows)
+            # print bcolors.OKGREEN + "\t fetching... \t { skip: %s, limit: %s }" % (self.numRows, rows_to_fetch) + bcolors.ENDC
+            if rows_to_fetch > 0:
+                self.beginInsertRows(QtCore.QModelIndex(), self.numRows, self.numRows + rows_to_fetch - 1)
+
+                data = self.rootNode.fetch(skip=self.numRows, limit=rows_to_fetch)
+                self.xTotalCount = self.rootNode.getXTotalCount()
+
+                jj = 0
+                for entity in data:
+                    tmp_count = self.numRows + jj
+                    child_node = Entity("untitled", entity)
+                    self.rootNode.insertChild(tmp_count, child_node)
+                    jj += 1
+
+                self.endInsertRows()
+                self.numRows += rows_to_fetch
 
         return
 
@@ -100,7 +79,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return parentNode.childCount()
 
     def columnCount(self, parent):
-        return 2
+        return 4
 
     def setColumnWidth(self, column, width):
         pass
@@ -224,7 +203,10 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
                 return "Type"
 
     def flags(self, index):
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
+        if index.column() == 2 or index.column() == 3:
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
+        else:
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def parent(self, index):
         node = self.getNode(index)

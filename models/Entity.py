@@ -1,6 +1,3 @@
-from BaseModel import DataSource
-
-
 class Entity(object):
     """docstring for Node"""
     def __init__(self, projectName=None, entity=None, parent=None):
@@ -20,13 +17,13 @@ class Entity(object):
         self.entity = response['data']
         # print 'setDataSource ' , self.entity
 
-    def fetchChildren(self, **filter):
-        filter['$dependencyCount'] = True
-        return self.ds.fetch(path='Entities/%s/children'%(self.projectName), **filter)
-
-    def fetchChildrenX(self, id, **filter):
+    def fetchChildren(self, id, **filter):
         filter['$dependencyCount'] = True
         return self.ds.fetch(path='Entities/%s/children'%(id), **filter)
+
+    def fetch(self, **filter):
+        filter['$dependencyCount'] = True
+        return self.ds.fetch(path='Entities/%s/children'%(self.projectName), **filter)
 
     def getXTotalCount(self):
         headers = self.ds.getHeaders()
@@ -44,6 +41,8 @@ class Entity(object):
 
     def addChild(self, child):
         self.children.append(child)
+        child.parent = self
+
 
     def insertChild(self, position, child):
         if position < 0 or position > len(self.children):
