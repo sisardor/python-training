@@ -1,9 +1,182 @@
 from PySide import QtGui, QtCore, QtNetwork
+from PySide.QtCore import QRect
+
 import resources.icons
 from Entity import Entity
 from models.BaseModel import DataSource
 from utils.bcolors import bcolors
+from utils.detect_color import detectColor
 from utils.json2obj import json2obj
+
+from PySide.QtGui import (QItemDelegate, QStyledItemDelegate, QStyle, QColor)
+from starrating import StarRating
+from stareditor import StarEditor
+class StarDelegate(QStyledItemDelegate):
+    """ A subclass of QStyledItemDelegate that allows us to render our
+        pretty star ratings.
+    """
+
+    def __init__(self, parent=None):
+        super(StarDelegate, self).__init__(parent)
+
+    def paint(self, painter, option, index):
+        """ Paint the items in the table.
+
+            If the item referred to by <index> is a StarRating, we handle the
+            painting ourselves. For the other items, we let the base class
+            handle the painting as usual.
+
+            In a polished application, we'd use a better check than the
+            column number to find out if we needed to paint the stars, but
+            it works for the purposes of this example.
+        """
+        if index.column() == 2:
+            starRating = StarRating(index.data())
+
+            # If the row is currently selected, we need to make sure we
+            # paint the background accordingly.
+            if option.state & QStyle.State_Selected:
+                # The original C++ example used option.palette.foreground() to
+                # get the brush for painting, but there are a couple of
+                # problems with that:
+                #   - foreground() is obsolete now, use windowText() instead
+                #   - more importantly, windowText() just returns a brush
+                #     containing a flat color, where sometimes the style
+                #     would have a nice subtle gradient or something.
+                # Here we just use the brush of the painter object that's
+                # passed in to us, which keeps the row highlighting nice
+                # and consistent.
+                painter.fillRect(option.rect, painter.brush())
+
+            # Now that we've painted the background, call starRating.paint()
+            # to paint the stars.
+            starRating.paint(painter, option.rect, option.palette)
+        else:
+            QStyledItemDelegate.paint(self, painter, option, index)
+
+    def sizeHint(self, option, index):
+        """ Returns the size needed to display the item in a QSize object. """
+        if index.column() == 2:
+            starRating = StarRating(index.data())
+            return starRating.sizeHint()
+        else:
+            return QStyledItemDelegate.sizeHint(self, option, index)
+
+    # The next 4 methods handle the custom editing that we need to do.
+    # If this were just a display delegate, paint() and sizeHint() would
+    # be all we needed.
+
+    def createEditor(self, parent, option, index):
+        """ Creates and returns the custom StarEditor object we'll use to edit
+            the StarRating.
+        """
+        if index.column() == 2:
+            combo = QtGui.QComboBox(parent)
+            li = []
+            li.append("Zero")
+            li.append("One")
+            li.append("Two")
+            li.append("Three")
+            li.append("Four")
+            li.append("Five")
+            combo.addItems(li)
+            return combo
+
+            editor = StarEditor(parent)
+            editor.editingFinished.connect(self.commitAndCloseEditor)
+            return editor
+        else:
+            return QStyledItemDelegate.createEditor(self, parent, option, index)
+
+    def setEditorData(self, editor, index):
+        """ Sets the data to be displayed and edited by our custom editor. """
+        if index.column() == 2:
+            editor.starRating = StarRating(index.data())
+        else:
+            QStyledItemDelegate.setEditorData(self, editor, index)
+
+    def setModelData(self, editor, model, index):
+        """ Get the data from our custom editor and stuffs it into the model.
+        """
+        if index.column() == 2:
+            model.setData(index, editor.starRating.starCount)
+        else:
+            QStyledItemDelegate.setModelData(self, editor, model, index)
+
+    def commitAndCloseEditor(self):
+        """ Erm... commits the data and closes the editor. :) """
+        editor = self.sender()
+
+        # The commitData signal must be emitted when we've finished editing
+        # and need to write our changed back to the model.
+        self.commitData.emit(editor)
+        self.closeEditor.emit(editor)
+
+BORDER_COLOR_FOR_DELEGATE = "#3e4041"
+
+
+class CustomCombo(QtGui.QComboBox):
+    """docstring for CustomCombo"""
+    def __init__(self, parent=None):
+        super(CustomCombo, self).__init__(parent)
+
+
+class ComboDelegate(QtGui.QStyledItemDelegate):
+    """
+    A delegate that places a fully functioning QComboBox in every
+    cell of the column to which it's applied
+    """
+    def __init__(self, parent=None):
+        super(ComboDelegate, self).__init__(parent)
+        print dir(self)
+
+    def setEditorData(self, editor, index):
+        value = index.model().data(index, QtCore.Qt.EditRole)
+        editor.setCurrentIndex(editor.findData(value))
+
+    def createEditor(self, parent, option, index):
+        print '-----------------------'
+        field = index.model()._getEntityType('status')
+        options = field['options']
+        combo = QtGui.QComboBox(parent)
+        for o in options:
+            combo.addItem(o['name'], o['label'])
+        return combo
+
+    def setModelData(self, editor, model, index):
+        value = editor.currentText()
+        model.setData(index, value, QtCore.Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
+
+    def paint(self, painter, option, index):
+        painter.save()
+        value = index.data(QtCore.Qt.DisplayRole)
+
+        # set background color
+        painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+        field = index.model()._getEntityType('status')
+        options = field['options']
+        o = (item for item in options if item["name"] == value or item["name"] == value).next()
+        background = o['color']
+        if option.state & QStyle.State_Selected:
+            painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
+            painter.setBrush(QtGui.QBrush(QColor(background)))
+        else:
+            painter.setBrush(QtGui.QBrush(QColor(background)))
+        painter.drawRect(option.rect)
+
+        # set borders
+        painter.setPen(QtGui.QPen(QColor(BORDER_COLOR_FOR_DELEGATE), 1))
+        painter.drawLine(option.rect.topRight(), option.rect.bottomRight())
+        painter.drawLine(option.rect.bottomLeft(), option.rect.bottomRight())
+
+        # set text color
+        textColor = detectColor(background)
+        painter.setPen(QtGui.QPen(QColor(textColor)))
+        painter.drawText(option.rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter, value)
+        painter.restore()
 
 
 class TreeModel(QtCore.QAbstractItemModel, DataSource):
@@ -13,11 +186,17 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         super(DataSource, self).__init__(*args, **kwargs)
         self.rootNode = root
 
+
         if self.rootNode._parent() is None and self.rootNode.entity is None:
             self.rootNode.setDataSource(self._getDataSource())
 
+        self.EntityTypes = self.fetch(path='CommonFields')
         self.numRows = 0
         self.xTotalCount = self.getXtotalCount()
+
+    """private"""
+    def _getEntityType(self, field):
+        return (item for item in self.EntityTypes if item["name"] == field).next()
 
     def hasChildren(self, index):
         node = self.getNode(index)
@@ -85,13 +264,13 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         pass
 
     def data(self, index, role):
-
-        # if role == QtCore.Qt.BackgroundRole:
-        # 	print "BackgroundRole %s"%role
-
         if not index.isValid():
             return None
         node = index.internalPointer()
+
+        # if role == QtCore.Qt.BackgroundRole:
+        #     if node._parent() is not None and node._parent():
+        # 	    print "BackgroundRole %s"%role
 
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0:
@@ -170,7 +349,14 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return success
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
+        print '#### setData', index.column()
         if index.isValid():
+            if role == QtCore.Qt.EditRole and index.column() == 2:
+                node = index.internalPointer()
+                result = node.setFieldStatus(value, ds=self._getDataSource())
+                self.dataChanged.emit(index, index)
+                return True
+
             if role == QtCore.Qt.EditRole:
                 node = index.internalPointer()
                 node.setProjectName(value)

@@ -25,6 +25,61 @@ class TreeWidget(QtGui.QTreeView):
         pass
 
 
+
+
+
+"""
+QTreeView QHeaderView::section {
+     background-color: #2c2f30;
+     color: #AAAAAA;
+     padding-left: 10px;
+     border: 1px solid #3e4041;
+     border-left: 0px;
+     border-right: 0px;
+     font-weight: 700;
+     
+ }
+
+QTreeView {
+    background: #2c2f30;
+    color: #AAAAAA;
+}
+
+ QTreeView::branch {
+    border-bottom: 1px solid #3e4041;
+ }
+ QTreeView::branch:selected {
+    background-color: #575858 !important;
+    color: #fff !important;
+    fill: white;
+ }
+ QTreeView::item:selected {
+    background-color: #575858 !important;
+    color: #fff !important;
+ }
+ QTreeView::item {
+    height: 35px;
+    width: 250px;
+    border-bottom: 1px solid #3e4041;
+    border-right: 1px solid #3e4041;
+ }
+ QTreeView::branch {
+    width: 175px;
+ }
+
+
+ QTreeView::branch:has-children:!has-siblings:closed,
+ QTreeView::branch:closed:has-children:has-siblings {
+         border-image: none;
+          image: url(/Users/zeromax/MayaPlugins/FileNodeBuilder/resources/icon-chevronright.svg);
+ }
+ QTreeView::branch:open:has-children:!has-siblings,
+ QTreeView::branch:open:has-children:has-siblings  {
+         border-image: none;
+         image: url(/Users/zeromax/MayaPlugins/FileNodeBuilder/resources/icon-chevrondown.svg);
+ }
+
+"""
 if __name__ == '__main__':
     from utils.json2obj import json2obj
     from models.Node import Entity

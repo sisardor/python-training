@@ -3,7 +3,7 @@ import sys
 import resources.icons
 from utils.json2obj import json2obj
 from models.Entity import Entity
-from models.TreeModel import TreeModel
+from models.TreeModel import TreeModel, ComboDelegate, StarDelegate
 from PySide import QtCore, QtGui
 from utils.pyside_dynamic import loadUi
 from views.treeWidget import TreeWidget
@@ -19,6 +19,8 @@ class MainController(QtGui.QMainWindow):
 
         self.ui = TreeWidget(self)
         self.ui.uiTree.setModel(tree)
+        # self.ui.uiTree.setItemDelegate(StarDelegate())
+        self.ui.uiTree.setItemDelegateForColumn(2, ComboDelegate(self))
 
 
 

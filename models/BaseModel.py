@@ -30,22 +30,34 @@ class BaseModel(object):
             return 300
 
     def fetch(self, path='Entities', **filter):
-        default_filter = {'include': 'activities'}
-        default_filter.update(filter)
-
-        query = {'filter': default_filter}
+        query = {'filter': filter}
         response = self.conn.get(path, **query)
-        self.entities = response['data']
+        entities = response['data']
         self.headers = response['headers']
         # print('fetching...', query)
-        return self.entities
+        return entities
 
     def _findById(self, id):
         response = self.conn.get('Entities/%s'%(id))
         return response
 
-    def __str__(self):
-        return "Model name: " + self.modelName
+    def save(self, model):
+        if model['id']:
+            print 'patching...'
+            try:
+                response = self.conn.patch('Entities/%s'%model['id'], model)
+                print response
+                return response['data']
+            except Exception as e:
+                print '======= Exception ======='
+                print e
+                return False
+        else:
+            print 'saving'
+            return True
+        return False
+    # def __str__(self):
+    #     return "Model name: " + self.modelName
 
 
 class DataSource(BaseModel):

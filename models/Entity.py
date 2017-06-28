@@ -1,3 +1,10 @@
+import pprint
+
+import copy
+
+from utils.bcolors import bcolors
+
+
 class Entity(object):
     """docstring for Node"""
     def __init__(self, projectName=None, entity=None, parent=None):
@@ -62,6 +69,18 @@ class Entity(object):
 
     def setProjectName(self, projectName):
         self.projectName = projectName
+
+    def setFieldStatus(self, value, ds):
+        entity = copy.deepcopy(self.entity)
+        entity['fields']['status'] = value
+        result = ds.save(entity)
+        if result:
+            self.entity = result
+        else:
+            print bcolors.FAIL + 'Error' + bcolors.ENDC
+            raise
+
+        # pprint.pprint(self.entity)
 
     def getProjectName(self):
         return self.projectName
