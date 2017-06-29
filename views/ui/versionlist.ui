@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>494</width>
-    <height>321</height>
+    <width>614</width>
+    <height>485</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,14 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QTreeView" name="treeView">
-     <property name="styleSheet">
-      <string notr="true">QTreeView {
-    background: #2c2f30;
-    color: #AAAAAA;
-}</string>
-     </property>
-    </widget>
+    <widget class="QTreeView" name="uiTree"/>
    </item>
   </layout>
  </widget>

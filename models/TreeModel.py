@@ -1,16 +1,11 @@
 from PySide import QtGui, QtCore, QtNetwork
-from PySide.QtCore import QRect
-
-import resources.icons
 from Entity import Entity
 from models.BaseModel import DataSource
 from utils.bcolors import bcolors
 from utils.detect_color import detectColor
 from utils.json2obj import json2obj
-
-from PySide.QtGui import (QItemDelegate, QStyledItemDelegate, QStyle, QColor)
-from starrating import StarRating
-from stareditor import StarEditor
+from PySide.QtGui import (QItemDelegate, QStyledItemDelegate, QStyle, QColor, QBrush)
+import resources.icons
 class StarDelegate(QStyledItemDelegate):
     """ A subclass of QStyledItemDelegate that allows us to render our
         pretty star ratings.
@@ -115,11 +110,6 @@ class StarDelegate(QStyledItemDelegate):
 BORDER_COLOR_FOR_DELEGATE = "#3e4041"
 
 
-class CustomCombo(QtGui.QComboBox):
-    """docstring for CustomCombo"""
-    def __init__(self, parent=None):
-        super(CustomCombo, self).__init__(parent)
-
 
 class ComboDelegate(QtGui.QStyledItemDelegate):
     """
@@ -128,19 +118,19 @@ class ComboDelegate(QtGui.QStyledItemDelegate):
     """
     def __init__(self, parent=None):
         super(ComboDelegate, self).__init__(parent)
-        print dir(self)
 
     def setEditorData(self, editor, index):
         value = index.model().data(index, QtCore.Qt.EditRole)
         editor.setCurrentIndex(editor.findData(value))
 
     def createEditor(self, parent, option, index):
-        print '-----------------------'
         field = index.model()._getEntityType('status')
         options = field['options']
         combo = QtGui.QComboBox(parent)
         for o in options:
             combo.addItem(o['name'], o['label'])
+
+        # combo.connect(self.commitAndCloseEditor)
         return combo
 
     def setModelData(self, editor, model, index):
@@ -186,7 +176,6 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         super(DataSource, self).__init__(*args, **kwargs)
         self.rootNode = root
 
-
         if self.rootNode._parent() is None and self.rootNode.entity is None:
             self.rootNode.setDataSource(self._getDataSource())
 
@@ -213,7 +202,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         if self.numRows < self.xTotalCount:
             return True
         else:
-            print(bcolors.FAIL + "\t end" + bcolors.ENDC)
+            # print(bcolors.FAIL + "\t end" + bcolors.ENDC)
             return False
 
     def fetchMore(self, index):
@@ -258,7 +247,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return parentNode.childCount()
 
     def columnCount(self, parent):
-        return 4
+        return 2
 
     def setColumnWidth(self, column, width):
         pass
@@ -267,10 +256,6 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         if not index.isValid():
             return None
         node = index.internalPointer()
-
-        # if role == QtCore.Qt.BackgroundRole:
-        #     if node._parent() is not None and node._parent():
-        # 	    print "BackgroundRole %s"%role
 
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if index.column() == 0:
@@ -294,10 +279,12 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
                     # image.loadFromData(data)
                     # return QtGui.QIcon(QtGui.QPixmap(image))
                     return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
-                elif typeInfo == "assets":
-                    return QtGui.QIcon(QtGui.QPixmap(":/Light.jpg"))
-                elif typeInfo == "Task":
-                    return QtGui.QIcon(QtGui.QPixmap(":/Transform.jpg"))
+                elif node.entity['category'] == "groups":
+                    imagePath = node.getThumbnail()
+                    if imagePath:
+                        return QtGui.QIcon(QtGui.QPixmap(imagePath))
+                elif node.entity['category'] == "tasks":
+                    return QtGui.QIcon(QtGui.QPixmap(":/icon-tasks.svg"))
                 elif typeInfo == "Camera":
                     return QtGui.QIcon(QtGui.QPixmap(":/Camera.jpg"))
                 else:
@@ -313,6 +300,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
                     # image = QtGui.QImage()
                     # image.loadFromData(data)
                     # return QtGui.QIcon(QtGui.QPixmap(image))
+
                     return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
 
     def getNode(self, index):

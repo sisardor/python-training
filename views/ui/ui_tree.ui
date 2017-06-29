@@ -52,7 +52,7 @@ border:none;
       <bool>false</bool>
      </property>
      <property name="styleSheet">
-      <string notr="true">QTreeView QHeaderView::section {
+      <string notr="true">QTreeViewX QHeaderViewX::section {
      background-color: #2c2f30;
      color: #AAAAAA;
      padding-left: 10px;
@@ -60,7 +60,6 @@ border:none;
      border-left: 0px;
      border-right: 0px;
      font-weight: 700;
-     
  }
 
 QTreeView {
@@ -74,7 +73,6 @@ QTreeView {
  QTreeView::branch:selected {
     background-color: #575858 !important;
     color: #fff !important;
-    fill: white;
  }
  QTreeView::item:selected {
     background-color: #575858 !important;
@@ -141,4 +139,7 @@ QTreeView {
  </widget>
  <resources/>
  <connections/>
+ <slots>
+  <slot>selectRow(QModelIndex)</slot>
+ </slots>
 </ui>

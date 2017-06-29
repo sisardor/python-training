@@ -6,5 +6,6 @@
 		<file>thumbnail-missing.svg</file>
 		<file>icon-chevrondown.svg</file>
 		<file>icon-chevronright.svg</file>
+		<file>icon-tasks.svg</file>
 	</qresource>
 </RCC>
