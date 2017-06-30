@@ -9,6 +9,7 @@ class Version(ApiProvider):
         self.version = version
         self.parent = parent
         self.children = []
+        self.checked = False
 
         if parent is not None:
             parent.addChild(self)
@@ -34,7 +35,8 @@ class Version(ApiProvider):
         if entityId is None:
             return
 
-        filter = { 'include': 'outputs'}
+        filter = { 'include': {'outputs': 'proxies'}, 'order': 'version DESC'}
+        # filter = {'include': 'outputs', 'order': 'version DESC'}
         response = self._find_all(path='Entities/%s/versions'%(entityId), **filter)
         versions = response['data']
         for i, version in enumerate(versions):
@@ -72,6 +74,17 @@ class Version(ApiProvider):
         self.children.insert(position, child)
         child.parent = self
         return True
+
+    def isChecked(self):
+
+        return self.checked
+
+    def setChecked(self, set):
+
+        # if self.childCount():
+        #     for child in self.children:
+        #         child.setChecked(set)
+        self.checked = set
 
 
 class Output(Version):

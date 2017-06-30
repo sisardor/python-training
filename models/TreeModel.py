@@ -247,7 +247,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return parentNode.childCount()
 
     def columnCount(self, parent):
-        return 1
+        return 3
 
     def setColumnWidth(self, column, width):
         pass

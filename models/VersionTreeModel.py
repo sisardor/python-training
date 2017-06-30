@@ -1,38 +1,59 @@
 from PySide import QtCore, QtGui
-from PySide.QtGui import QStyledItemDelegate
+from PySide.QtCore import QRectF
+from PySide.QtGui import QStyledItemDelegate, QColor
 
+ROW_HIGHT = 50
+BORDER_COLOR_FOR_DELEGATE = "#3e4041"
+THUMB_WIDTH = 70
+THUMB_HIEGHT = 40
+MARGIN = 5
 
 class VersionDelegate(QtGui.QStyledItemDelegate):
     """docstring for VersionDelegate"""
     def __init__(self, parent=None):
         super(VersionDelegate, self).__init__(parent)
 
-
     def paint(self, painter, option, index):
 
         if index.column() == 0:
-            # print option.rect, option.rect.top()
-            x = option.rect.x()
-            y = option.rect.y()
-            print '{ x: %s, y: %s}'%(x, y)
-            image = QtGui.QImage(str(
-                '/Users/zeromax/MAVIS_WORKPLACE/static/skyline/59540cc279a4ba139b8154ca/59540d3479a4ba139b8154f6_med.jpg'))
-            pixmap = QtGui.QPixmap.fromImage(image)
-            pixmap.scaledToHeight(35, QtCore.Qt.FastTransformation)
-            painter.drawPixmap(x+5, y+5, 50, 35, pixmap)
+            if option.state & QtGui.QStyle.State_Selected:
+                QStyledItemDelegate.paint(self, painter, option, index)
 
+            # paint checkbox
+            checkbox = index.data(QtCore.Qt.CheckStateRole)
 
-        if index.column() == 6:
             node = index.internalPointer()
             print node
-            image = QtGui.QImage(str('/Users/zeromax/MAVIS_WORKPLACE/static/skyline/59540cc279a4ba139b8154ca/59540d3479a4ba139b8154f6_med.jpg'))
-            pixmap = QtGui.QPixmap.fromImage(image)
-            pixmap.scaledToHeight(35, QtCore.Qt.FastTransformation)
-            painter.drawPixmap(option.rect, pixmap)
+            # paint thumbnail
+            thumbnail_path = index.data(QtCore.Qt.UserRole)
+            thumbnail_image = QtGui.QPixmap(thumbnail_path).scaled(THUMB_WIDTH, THUMB_HIEGHT)
+            r = QtCore.QRect(option.rect.left() + MARGIN, option.rect.top() + MARGIN, THUMB_WIDTH, THUMB_HIEGHT)
+            painter.drawPixmap(r, thumbnail_image)
+
+            # paint name
+            name = index.data(QtCore.Qt.DisplayRole)
+            r = QtCore.QRect(option.rect.left() + THUMB_WIDTH + MARGIN + MARGIN,
+                             option.rect.top(),
+                             option.rect.width() - THUMB_WIDTH - MARGIN,
+                             option.rect.height())
+
+            painter.drawText(r, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, name)
+
+
+            # paint borders
+            painter.setPen(QtGui.QPen(QtGui.QColor(BORDER_COLOR_FOR_DELEGATE), 1))
+            # right border
+            painter.drawLine(option.rect.topRight(), option.rect.bottomRight())
+            # bottom border
+            #if node.getType() == 'version':
+            painter.drawLine(QtCore.QPoint(0, option.rect.bottom()), option.rect.bottomRight())
             pass
         else:
+            painter.setPen(QtGui.QPen(QtGui.QColor(BORDER_COLOR_FOR_DELEGATE), 1))
+            painter.drawLine(option.rect.topRight(), option.rect.bottomRight())
+            painter.drawLine(option.rect.bottomLeft(), option.rect.bottomRight())
             QStyledItemDelegate.paint(self, painter, option, index)
-    #     pass
+
 
 
 class VersionTreeModel(QtCore.QAbstractItemModel):
@@ -104,9 +125,8 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
         #         path = node.getThumbnail()
         #         return QtGui.QIcon(QtGui.QPixmap(path))
 
-
+        typeInfo = node.getType()
         if role == QtCore.Qt.DisplayRole:
-            typeInfo = node.getType()
             if index.column() == 0:
                 if typeInfo == 'version':
                     return node.version['version']
@@ -120,9 +140,37 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
             elif index.column() == 2:
                 return node.version['createdAt']
         elif role == QtCore.Qt.SizeHintRole:
-            print "giving size hint"
-            return QtCore.QSize(50,50)
+            return QtCore.QSize(100,ROW_HIGHT)
+        elif role == QtCore.Qt.UserRole:
+            imagePath = node.getThumbnail()
+            if imagePath:
+                return imagePath
+            else:
+                return ':/thumbnail-missing.svg'
 
+        elif role == QtCore.Qt.CheckStateRole and index.column() == 0:
+            if node.isChecked():
+                return QtCore.Qt.Checked
+            else:
+                return QtCore.Qt.Unchecked
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        if index.isValid():
+            if role == QtCore.Qt.CheckStateRole:
+                node = index.internalPointer()
+                node.setChecked(value)
+                self.dataChanged.emit(index, index)
+                return True
+
+        return False
+
+    def flags(self, index):
+        # if index.isValid():
+        #     return 0
+        if index.column() == 0:
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
+        else:
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
 if __name__ == '__main__':
     pass
