@@ -1,11 +1,9 @@
-import pprint
-
 import copy
-
+from models.api_provider import ApiProvider
 from utils.bcolors import bcolors
 
 
-class Entity(object):
+class Entity(ApiProvider):
     """docstring for Node"""
     def __init__(self, projectName=None, entity=None, parent=None):
         super(Entity, self).__init__()
@@ -13,26 +11,51 @@ class Entity(object):
         self.entity = entity
         self.children = []
         self.parent = parent
-        self._xTotalCount = 0
+        self.xTotalCount = -1
 
         if parent is not None:
             parent.addChild(self)
+
+        if self.parent is None and self.projectName is not None:
+            pass
+            # self._fetchChildren(id=self.projectName)
+
+    def _hasMoreChildren(self):
+        return self.childCount() < self.xTotalCount
+
+    def _fetch(self, id, **filter):
+        filter['$dependencyCount'] = True
+        filter['order'] = 'orderNum ASC'
+        filter['include'] = ['media']
+        response = self._find_all(path='Entities/%s/children' % id, **filter)
+
+        remainder_rows = self.xTotalCount - self.childCount()
+        rows_to_fetch = min(25, remainder_rows)
+
+        return response['data']
+
+    def _fetchChildren(self, id, **filter):
+        filter['$dependencyCount'] = True
+        filter['order'] = 'orderNum ASC'
+        filter['include'] = ['media']
+
+        response = self._find_all(path='Entities/%s/children' % id, **filter)
+        entities = response['data']
+        if self.parent is None:
+            self.xTotalCount = int(response['headers']['x-total-count'])
+
+        child_count = self.childCount()
+        for index, entity in enumerate(entities):
+            # print child_count + index, entity
+            self.insertChild(index, Entity("untitled", entity))
+
+
 
     def setDataSource(self, dataSourece):
         self.ds = dataSourece
         response = self.ds._findById(self.projectName)
         self.entity = response['data']
         # print 'setDataSource ' , self.entity
-
-    def fetchChildren(self, id, **filter):
-        filter['$dependencyCount'] = True
-        filter['include'] = ['media']
-        return self.ds.fetch(path='Entities/%s/children'%(id), **filter)
-
-    def fetch(self, **filter):
-        filter['$dependencyCount'] = True
-        filter['include'] = ['media']
-        return self.ds.fetch(path='Entities/%s/children'%(self.projectName), **filter)
 
     def getXTotalCount(self):
         headers = self.ds.getHeaders()
@@ -110,19 +133,21 @@ class Entity(object):
         return False
 
     def log(self, tabLevel=-1):
-        output = ""
-        tabLevel += 1
-        for i in range(tabLevel):
-            output += '\t'
+        return '{name: %s}'%self.entity['name']
 
-        output += "|------" + self.entity['name'] + '\n'
-
-        for child in self.children:
-            output += child.log(tabLevel)
-
-        tabLevel -= 1
-        output += '\n'
-        return output
+        # output = ""
+        # tabLevel += 1
+        # for i in range(tabLevel):
+        #     output += '\t'
+        #
+        # output += "|------" + self.entity['name'] + '\n'
+        #
+        # for child in self.children:
+        #     output += child.log(tabLevel)
+        #
+        # tabLevel -= 1
+        # output += '\n'
+        # return output
 
     def __repr__(self):
         return self.log()

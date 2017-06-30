@@ -1,5 +1,7 @@
 import os, sys
-from PySide import QtGui
+from PySide import QtGui, QtCore
+from PySide.QtGui import QHeaderView
+
 from utils.pyside_dynamic import loadUi
 
 path = os.path.dirname(os.path.abspath(__file__))
@@ -8,7 +10,12 @@ class VersionTreeWidget(QtGui.QListView):
     def __init__(self, parent=None):
         super(VersionTreeWidget, self).__init__(parent)
         loadUi(os.path.join(path, 'ui/versionlist.ui'), self)
+        self.uiTree.setIconSize(QtCore.QSize(37, 23))
+        # self.uiTree.header().setStretchLastSection(False)
 
+    def resizeEvent(self, event):
+        # self.uiTree.setColumnWidth(0, 200)
+        pass
 
 
 if __name__ == '__main__':

@@ -168,6 +168,7 @@ class ComboDelegate(QtGui.QStyledItemDelegate):
         painter.drawText(option.rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter, value)
         painter.restore()
 
+LIMIT = 25
 
 class TreeModel(QtCore.QAbstractItemModel, DataSource):
     """docstring for TreeModel"""
@@ -180,8 +181,13 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
             self.rootNode.setDataSource(self._getDataSource())
 
         self.EntityTypes = self.fetch(path='CommonFields')
-        self.numRows = 0
-        self.xTotalCount = self.getXtotalCount()
+
+        # fetch initial data
+        self.rootNode._fetchChildren(id=self.rootNode.getProjectName(),
+                                     skip=0,
+                                     limit=LIMIT)
+        self.numRows = self.rootNode.childCount()
+        pass
 
     """private"""
     def _getEntityType(self, field):
@@ -199,7 +205,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
             if node.childCount() == node.entity['$dependencyCount']:
                 return False
             return True
-        if self.numRows < self.xTotalCount:
+        if self.rootNode._hasMoreChildren():
             return True
         else:
             # print(bcolors.FAIL + "\t end" + bcolors.ENDC)
@@ -209,21 +215,16 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         node = self.getNode(index)
         if node._parent() is not None:
             # print "expend -> ", node.entity['id']
-            data = self.rootNode.fetchChildren(id=node.entity['id'])
-            for entity in data:
-                child_node = Entity("untitled", entity)
-                node.insertChild(0, child_node)
+            node._fetchChildren(id=node.entity['id'])
+        else:
+            remainder_rows = self.rootNode.xTotalCount - self.numRows
+            rows_to_fetch = min(LIMIT, remainder_rows)
 
-        if node._parent() is None:
-            max_fetch = 50
-            remainder_rows = self.xTotalCount - self.numRows
-            rows_to_fetch = min(max_fetch, remainder_rows)
             # print bcolors.OKGREEN + "\t fetching... \t { skip: %s, limit: %s }" % (self.numRows, rows_to_fetch) + bcolors.ENDC
             if rows_to_fetch > 0:
                 self.beginInsertRows(QtCore.QModelIndex(), self.numRows, self.numRows + rows_to_fetch - 1)
 
-                data = self.rootNode.fetch(skip=self.numRows, limit=rows_to_fetch)
-                self.xTotalCount = self.rootNode.getXTotalCount()
+                data = self.rootNode._fetch(id=self.rootNode.getProjectName(),skip=self.numRows, limit=rows_to_fetch)
 
                 jj = 0
                 for entity in data:
@@ -234,7 +235,6 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
 
                 self.endInsertRows()
                 self.numRows += rows_to_fetch
-
         return
 
     def rowCount(self, parent):
@@ -247,7 +247,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return parentNode.childCount()
 
     def columnCount(self, parent):
-        return 2
+        return 1
 
     def setColumnWidth(self, column, width):
         pass
