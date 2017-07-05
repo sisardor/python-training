@@ -22,6 +22,12 @@ class Version(ApiProvider):
             return True
         return False
 
+    def isLatestVersion(self):
+        if self.parent and self.parent.entity:
+            return self.parent.entity['latest'] == self.version['id']
+        else:
+            return False
+
     def getThumbnail(self):
         if self.version['proxies'] or hasattr(self.version, 'proxies'):
             image = (item for item in self.version['proxies'] if item["mediaType"] == 'thumb_small' or item["mediaType"] == 'thumb_big').next()

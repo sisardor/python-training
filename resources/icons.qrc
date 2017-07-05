@@ -7,5 +7,14 @@
 		<file>icon-chevrondown.svg</file>
 		<file>icon-chevronright.svg</file>
 		<file>icon-tasks.svg</file>
+		<file>star-badge.svg</file>
+		<file>checkbox_checked_disabled.png</file>
+		<file>checkbox_checked_focus.png</file>
+		<file>checkbox_checked.png</file>
+		<file>checkbox_indeterminate.png</file>
+		<file>checkbox_indeterminate_focus.png</file>
+		<file>checkbox_unchecked_disabled.png</file>
+		<file>checkbox_unchecked_focus.png</file>
+		<file>checkbox_unchecked.png</file>
 	</qresource>
 </RCC>

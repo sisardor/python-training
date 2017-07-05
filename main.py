@@ -106,8 +106,10 @@ class App(QtGui.QWidget):
 def run():
     #get the current (Global) QApplication instance OR
     #create a new one if unavailable (standalone)
+    # QtGui.QApplication.setStyle('motif') #"windows", "motif", "cde", "plastique", "windowsxp", or "macintosh".
     STANDALONE_MODE=False
     app = QtGui.QApplication.instance()
+
     if not app:
         app = QtGui.QApplication(sys.argv)
         STANDALONE_MODE=True

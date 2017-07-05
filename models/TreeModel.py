@@ -168,6 +168,7 @@ class ComboDelegate(QtGui.QStyledItemDelegate):
         painter.drawText(option.rect, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter, value)
         painter.restore()
 
+
 LIMIT = 25
 
 class TreeModel(QtCore.QAbstractItemModel, DataSource):

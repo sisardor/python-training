@@ -20,6 +20,77 @@
       <string notr="true">QTreeView {
     background: #2c2f30;
     color: #AAAAAA;
+}
+
+ QTreeView::item:selected {
+    background-color: #575858 !important;
+    color: #fff !important;
+ }
+
+QCheckBox {
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 13px;
+    height: 13px;
+}
+
+QCheckBox::indicator:unchecked
+{
+    image: url(:/checkbox_unchecked.png);
+}
+
+QCheckBox::indicator:unchecked:hover,
+QCheckBox::indicator:unchecked:focus,
+QCheckBox::indicator:unchecked:pressed,
+QGroupBox::indicator:unchecked:hover,
+QGroupBox::indicator:unchecked:focus,
+QGroupBox::indicator:unchecked:pressed
+{
+  border: none;
+    image: url(:/checkbox_unchecked_focus.png);
+}
+
+QCheckBox::indicator:checked
+{
+    image: url(:/checkbox_checked.png);
+}
+
+QCheckBox::indicator:checked:hover,
+QCheckBox::indicator:checked:focus,
+QCheckBox::indicator:checked:pressed,
+QGroupBox::indicator:checked:hover,
+QGroupBox::indicator:checked:focus,
+QGroupBox::indicator:checked:pressed
+{
+  border: none;
+    image: url(:/checkbox_checked_focus.png);
+}
+
+
+QCheckBox::indicator:indeterminate
+{
+    image: url(:/checkbox_indeterminate.png);
+}
+
+QCheckBox::indicator:indeterminate:focus,
+QCheckBox::indicator:indeterminate:hover,
+QCheckBox::indicator:indeterminate:pressed
+{
+    image: url(:/checkbox_indeterminate_focus.png);
+}
+
+QCheckBox::indicator:checked:disabled,
+QGroupBox::indicator:checked:disabled
+{
+    image: url(:/checkbox_checked_disabled.png);
+}
+
+QCheckBox::indicator:unchecked:disabled,
+QGroupBox::indicator:unchecked:disabled
+{
+    image: url(:/checkbox_unchecked_disabled.png);
 }</string>
      </property>
      <property name="animated">
