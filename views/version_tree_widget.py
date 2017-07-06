@@ -11,6 +11,7 @@ class VersionTreeWidget(QtGui.QListView):
         super(VersionTreeWidget, self).__init__(parent)
         loadUi(os.path.join(path, 'ui/versionlist.ui'), self)
         self.uiTree.setIconSize(QtCore.QSize(37, 23))
+
         # self.uiTree.header().setStretchLastSection(False)
 
     def resizeEvent(self, event):

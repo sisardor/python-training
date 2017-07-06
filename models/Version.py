@@ -82,22 +82,52 @@ class Version(ApiProvider):
         return True
 
     def isChecked(self):
+        result = []
+        for child in self.children:
+            if child.isChecked():
+                result.append(child.isChecked())
+        if self.childCount() and self.childCount() == len(result):
+            return 2 # QtCore.Qt.Checked
+        elif len(result) == 0:
+            return 0 # QtCore.Qt.Unchecked
+        else:
+            return 1 # QtCore.Qt.PartiallyChecked
 
-        return self.checked
+
 
     def setChecked(self, set):
-
-        # if self.childCount():
-        #     for child in self.children:
-        #         child.setChecked(set)
+        if self.childCount():
+            for child in self.children:
+                child.setChecked(set)
         self.checked = set
 
+    def isEqual(self, item):
+        return self.version['id'] == item.version['id']
+
+    def log(self, tabLevel=-1):
+        if self.version:
+            return '{name: %s}'%self.version['version']
+        return 'xxx'
+
+    def __repr__(self):
+        return self.log()
 
 class Output(Version):
     """docstring for Output"""
     def __init__(self, output, parent):
         super(Output, self).__init__(version=output, parent=parent)
 
-
     def getType(self):
         return 'output'
+
+    def isChecked(self):
+        return self.checked
+
+    def setChecked(self, set):
+        self.checked = set
+
+    def log(self, tabLevel=-1):
+        return '{name: %s}'%self.version['type']
+
+    def __repr__(self):
+        return self.log()

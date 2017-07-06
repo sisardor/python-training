@@ -23,8 +23,6 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
     BG_DEFAULT = QtGui.QBrush(BACKGROUND_COLOR)
     BG_SELECTED = QtGui.QBrush(BACKGROUND_COLOR_SELECT)
     CHILD_BG_SELECTED = QtGui.QBrush(CHILD_NODE_BG_COLOR)
-    BORDER_DEFAULT = QtGui.QPen(QtGui.QColor('#3e4041'), 1, QtCore.Qt.SolidLine)
-    SHADOW_PEN = QtGui.QPen(QtGui.QColor(220, 220, 220, 100), 1, QtCore.Qt.SolidLine)
 
     """docstring for VersionDelegate"""
     def __init__(self, parent=None):
@@ -105,23 +103,6 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
         else:
             self.drawTextWithoutThumnail(painter, option.rect, text)
 
-        """
-        QStyleOptionButton checkboxstyle;
-        QRect checkbox_rect = QApplication::style()->subElementRect(QStyle::SE_CheckBoxIndicator, &checkboxstyle);
-
-        //center
-        checkboxstyle.rect = option.rect;
-        checkboxstyle.rect.setLeft(option.rect.x() +
-                                   option.rect.width()/2 - checkbox_rect.width()/2);
-        //checked or not checked
-        if(data)
-            checkboxstyle.state = QStyle::State_On|QStyle::State_Enabled;
-        else
-            checkboxstyle.state = QStyle::State_Off|QStyle::State_Enabled;
-
-        //done! we can draw!
-        QApplication::style()->drawControl(QStyle::CE_CheckBox, &checkboxstyle, painter);
-        """
         # paint checkbox
         if index.column() == 0:
             painter.save()
@@ -135,28 +116,30 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
             middle = (option.rect.height()/2) - 10
             checkboxstyle.rect = QtCore.QRect(option.rect.x() + 2, option.rect.y() + middle, 20, 20)
 
-            if checkbox_state:
+            if checkbox_state == QtCore.Qt.Checked:
                 checkboxstyle.state = QtGui.QStyle.State_On | QtGui.QStyle.State_Active | QtGui.QStyle.State_Enabled
+            elif checkbox_state == QtCore.Qt.PartiallyChecked:
+                checkboxstyle.state = QtGui.QStyle.State_NoChange | QtGui.QStyle.State_Active | QtGui.QStyle.State_Enabled
             else:
                 checkboxstyle.state = QtGui.QStyle.State_Off | QtGui.QStyle.State_Enabled
 
-            # checkboxstyle.state = QtGui.QStyle.State_Sunken  | QtGui.QStyle.State_Enabled
-            # p = QtGui.QStylePainter()
-            # p.drawControl(QtGui.QStyle.CE_CheckBox, checkboxstyle)
             checkboxstyle.palette = QtGui.QPalette(QtCore.Qt.white)
             style.drawControl(QtGui.QStyle.CE_CheckBox, checkboxstyle, painter)
-
 
             painter.restore()
 
 
 
-
 class VersionTreeModel(QtCore.QAbstractItemModel):
     """docstring for VersionTreeModel"""
-    def __init__(self, root=None, parent=None):
+    def __init__(self, shoppingCart, root=None, parent=None):
         super(VersionTreeModel, self).__init__(parent)
         self.rootNode = root
+        # print '__init__', root.children
+        # count = self.rootNode.childCount()
+        # for i in range(count):
+        #     self.rootNode.child(i).
+        self.shoppingCart = shoppingCart
 
     def rowCount(self, parent):
         if not parent.isValid():
@@ -181,7 +164,7 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
 
         if parentNode == self.rootNode:
             return QtCore.QModelIndex()
-        return self.createIndex(parentNode.row(), 0, parentNode)
+        return self.createIndex(0, 0, parentNode)
 
     def index(self, row, column, parent):
         parentNode = self.getNode(parent)
@@ -238,24 +221,38 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
                 return ':/thumbnail-missing.svg'
 
         elif role == QtCore.Qt.CheckStateRole and index.column() == 0:
-            if node.isChecked():
-                return QtCore.Qt.Checked
-            else:
-                return QtCore.Qt.Unchecked
+            return node.isChecked()
+
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
+
         if index.isValid():
             if role == QtCore.Qt.CheckStateRole:
                 node = index.internalPointer()
                 node.setChecked(value)
-                self.dataChanged.emit(index, index)
+                if node.getType() == 'output':
+                    version = node._parent()
+                    self.shoppingCart.insertRows(0, version)
+
+                    # if value:
+                    #     self.shoppingCart.addItem(node)
+                    # else:
+                    #     self.shoppingCart.removeItem(node)
+                else:
+                    count = node.childCount()
+                    self.shoppingCart.insertRows(0, node)
+                    # for i in range(count):
+                    #     if value:
+                    #         self.shoppingCart.addItem(node.child(i))
+                    #     else:
+                    #         self.shoppingCart.removeItem(node.child(i))
+
+                self.dataChanged.emit(index, 0)
                 return True
 
         return False
 
     def flags(self, index):
-        # if index.isValid():
-        #     return 0
         if index.column() == 0:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
         else:
