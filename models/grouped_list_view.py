@@ -1,5 +1,5 @@
 from PySide import QtCore
-from models.Version import Version, Output
+from models.version import Version, Output
 
 
 class GroupedListView(QtCore.QAbstractItemModel):
@@ -52,7 +52,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
             return None
         node = index.internalPointer()
 
-        typeInfo = node.getType()
+        typeInfo = node.get_type_info()
         if role == QtCore.Qt.DisplayRole:
             if index.column() == 0:
                 if typeInfo == 'version':

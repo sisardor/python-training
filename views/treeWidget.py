@@ -2,7 +2,7 @@ import os
 import resources.icons
 import sys
 from PySide import QtGui, QtCore
-from models.TreeModel import ComboDelegate
+from models.tree_model import ComboDelegate
 from utils.pyside_dynamic import loadUi
 
 path = os.path.dirname(os.path.abspath(__file__))
@@ -88,8 +88,8 @@ QTreeView {
 """
 if __name__ == '__main__':
     from utils.json2obj import json2obj
-    from models.Entity import Entity
-    from models.TreeModel import TreeModel
+    from models.entity import Entity
+    from models.tree_model import TreeModel
 
     app = QtGui.QApplication(sys.argv)
 

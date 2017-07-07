@@ -4,8 +4,8 @@ import traceback
 from mainController import MainController
 # from utils.borderlayout import BorderLayout
 from utils.json2obj import json2obj
-from models.Entity import Entity
-from models.TreeModel import TreeModel
+from models.entity import Entity
+from models.tree_model import TreeModel
 STANDALONE_MODE=False
 
 try:

@@ -1,10 +1,10 @@
 import os
 import sys
 import resources.icons
-from models.VersionTreeModel import VersionDelegate, VersionTreeModel
-from models.Version import Version
-from models.Entity import Entity
-from models.TreeModel import TreeModel
+from models.version_tree_model import VersionDelegate, VersionTreeModel
+from models.version import Version
+from models.entity import Entity
+from models.tree_model import TreeModel
 from PySide import QtCore, QtGui
 
 from models.grouped_list_view import GroupedListView

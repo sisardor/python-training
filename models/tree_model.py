@@ -1,6 +1,6 @@
 from PySide import QtGui, QtCore, QtNetwork
-from Entity import Entity
-from models.BaseModel import DataSource
+from entity import Entity
+from models.base_model import DataSource
 from utils.bcolors import bcolors
 from utils.detect_color import detectColor
 from utils.json2obj import json2obj
@@ -278,7 +278,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
                     # return QtGui.QIcon(QtGui.QPixmap(image))
                     return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
                 elif node.entity['category'] == "groups":
-                    imagePath = node.getThumbnail()
+                    imagePath = node.get_thumbnail()
                     if imagePath:
                         return QtGui.QIcon(QtGui.QPixmap(imagePath))
                 elif node.entity['category'] == "tasks":

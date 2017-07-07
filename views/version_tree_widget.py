@@ -16,7 +16,7 @@ class VersionTreeWidget(QtGui.QTreeView):
 
 if __name__ == '__main__':
     from utils.json2obj import json2obj
-    from models.Entity import Entity
+    from models.entity import Entity
 
     app = QtGui.QApplication(sys.argv)
 

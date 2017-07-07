@@ -61,7 +61,7 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
                          rect.height())
         painter.drawText(r, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, text)
         node = index.internalPointer()
-        if node.isLatestVersion():
+        if node.is_latest_version():
             self.drawBadge(painter, rect, text, r)
 
         painter.restore()
@@ -193,10 +193,10 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         # if role == QtCore.Qt.DecorationRole:
         #     if index.column() == 0:
-        #         path = node.getThumbnail()
+        #         path = node.get_thumbnail()
         #         return QtGui.QIcon(QtGui.QPixmap(path))
 
-        typeInfo = node.getType()
+        typeInfo = node.get_type_info()
         if role == QtCore.Qt.DisplayRole:
             if index.column() == 0:
                 if typeInfo == 'version':
@@ -213,7 +213,7 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
         elif role == QtCore.Qt.SizeHintRole:
             return QtCore.QSize(100,ROW_HIGHT)
         elif role == QtCore.Qt.UserRole:
-            imagePath = node.getThumbnail()
+            imagePath = node.get_thumbnail()
             if imagePath:
                 return imagePath
             else:
@@ -229,7 +229,7 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
             if role == QtCore.Qt.CheckStateRole:
                 node = index.internalPointer()
                 node.setChecked(value)
-                if node.getType() == 'output':
+                if node.get_type_info() == 'output':
                     outputJSON = node.version
                     versionJSON = node.parent().version
                     if value:

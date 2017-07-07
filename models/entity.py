@@ -19,6 +19,14 @@ class Entity(ApiProvider):
         if self.parent is None and self.projectName is not None:
             pass
             # self._fetchChildren(id=self.projectName)
+    # ----------------------------------------------------------------------------------------------------
+    # Internal class methods
+
+    def get_thumbnail(self):
+        if self.entity['media'] or hasattr(self.entity, 'media'):
+            image = (item for item in self.entity['media'] if item["mediaType"] == 'thumb_small' or item["mediaType"] == 'thumb_big').next()
+            return image['path']
+        return False
 
     def _hasMoreChildren(self):
         return self.childCount() < self.xTotalCount
@@ -119,11 +127,6 @@ class Entity(ApiProvider):
         if self.parent is not None:
             return self.parent.children.index(self)
 
-    def getThumbnail(self):
-        if self.entity['media'] or hasattr(self.entity, 'media'):
-            image = (item for item in self.entity['media'] if item["mediaType"] == 'thumb_small' or item["mediaType"] == 'thumb_big').next()
-            return image['path']
-        return False
 
     def log(self, tabLevel=-1):
         return '{name: %s}'%self.entity['name']
