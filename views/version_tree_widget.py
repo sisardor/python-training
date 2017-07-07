@@ -5,18 +5,13 @@ from PySide.QtGui import QHeaderView
 from utils.pyside_dynamic import loadUi
 
 path = os.path.dirname(os.path.abspath(__file__))
-class VersionTreeWidget(QtGui.QListView):
-    """docstring for ListWidget"""
+class VersionTreeWidget(QtGui.QTreeView):
     def __init__(self, parent=None):
-        super(VersionTreeWidget, self).__init__(parent)
-        loadUi(os.path.join(path, 'ui/versionlist.ui'), self)
-        self.uiTree.setIconSize(QtCore.QSize(37, 23))
+        QtGui.QTreeView.__init__(self, parent)
+        self.header().setStretchLastSection(True)
+        self.setMinimumSize(QtCore.QSize(700, 0))
+        self.setAnimated(True)
 
-        # self.uiTree.header().setStretchLastSection(False)
-
-    def resizeEvent(self, event):
-        # self.uiTree.setColumnWidth(0, 200)
-        pass
 
 
 if __name__ == '__main__':

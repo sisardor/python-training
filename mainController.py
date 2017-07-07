@@ -9,69 +9,12 @@ from PySide import QtCore, QtGui
 
 from models.grouped_list_view import GroupedListView
 from utils.pyside_dynamic import loadUi
+from views.outputs_tree_ui import OutputsTreeUI
 from views.treeWidget import TreeWidget
 from views.version_tree_widget import VersionTreeWidget
 
 path = os.path.dirname(os.path.abspath(__file__))
 
-
-# class ShoppingCart(object):
-#     """docstring for ShoppingCart"""
-#     def __init__(self):
-#         super(ShoppingCart, self).__init__()
-#         self.list = []
-#
-#     def addItem(self, node):
-#         result =  [index for index, item in enumerate(self.list) if item.isEqual(node) ]
-#         print result
-#         if not result:
-#             self.list.append(node)
-#         print '\n================='
-#         for item in self.list:
-#             print item
-#
-#     def removeItem(self, node):
-#         indices = [ index for index, item in enumerate(self.list) if item.isEqual(node) ]
-#
-#         for index in indices:
-#             del self.list[index]
-#
-#
-#         pass
-
-
-class ShoppingCart(QtCore.QAbstractListModel):
-    def __init__(self, datain, parent=None, *args):
-        """ datain: a list where each item is a row
-        """
-        super(ShoppingCart, self).__init__(parent, *args)
-        self.listdata = datain
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.listdata)
-
-    def data(self, index, role):
-
-        if index.isValid() and role == QtCore.Qt.DisplayRole:
-
-            return self.listdata[index.row()].version['type']
-
-    def addItem(self, node):
-        result =  [index for index, item in enumerate(self.listdata) if item.isEqual(node) ]
-        # print result
-        if not result:
-            self.listdata.append(node)
-        # print '\n================='
-        # for item in self.listdata:
-        #     print item
-        self.dataChanged.emit(0, 0)
-
-    def removeItem(self, node):
-        indices = [ index for index, item in enumerate(self.listdata) if item.isEqual(node) ]
-
-        for index in indices:
-            del self.listdata[index]
-        self.dataChanged.emit(0, 0)
 
 
 class MainController(QtGui.QMainWindow):
@@ -80,12 +23,10 @@ class MainController(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainController, self).__init__(parent)
         loadUi(os.path.join(path, 'views/ui/mainwindow.ui'), self)
-        tempV = Version()
-        # Version(parent=tempV)
-        self.shoppingCart = GroupedListView(tempV)
-        self.shoppingTree.setModel(self.shoppingCart)
 
-        print  self.shoppingTree
+        self.shoppingCart = GroupedListView()
+        self.outputs_tree_ui = OutputsTreeUI(model=self.shoppingCart)
+        self.horizontalLayout.addWidget(self.outputs_tree_ui)
 
         ######################
         self.project_model = Entity(projectName='skyline')
@@ -95,13 +36,11 @@ class MainController(QtGui.QMainWindow):
 
         ######################
         self.version_tree_view = VersionTreeWidget(parent=parent)
-        self.version_tree_view.uiTree.setItemDelegate(VersionDelegate())
+        self.version_tree_view.setItemDelegate(VersionDelegate())
 
 
         self.layoutWest.addWidget(self.project_tree_view.uiTree)
-        self.layoutMiddle.addWidget(self.version_tree_view.uiTree)
-
-        # self.version_tree_view.setShoppingCart(self.shoppingCart)
+        self.layoutMiddle.addWidget(self.version_tree_view)
 
 
         self.selection_model = QtGui.QItemSelectionModel(self.project_tree_model, self.project_tree_view.uiTree)
@@ -120,17 +59,16 @@ class MainController(QtGui.QMainWindow):
     def row_selected(self, selected):
         pass
 
+
     def row_changed(self, current):
         node = current.internalPointer()
 
-        entity_version_model = Version(entity=node.entity)
-        version_list_model = VersionTreeModel(root=entity_version_model, shoppingCart=self.shoppingCart)
-        self.version_tree_view.uiTree.setModel(version_list_model)
+        version_list_model = VersionTreeModel(root=Version(entity=node.entity),
+                                              shoppingCart=self.shoppingCart)
+        self.version_tree_view.setModel(version_list_model)
+        self.version_tree_view.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
-        self.version_tree_view.uiTree.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
 
-        self.shoppingTree.expandAll()
-        self.shoppingTree.setItemsExpandable(False)
 
     @QtCore.Slot()
     def mySlot(self, id):

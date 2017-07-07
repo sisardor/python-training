@@ -7,12 +7,12 @@ class Version(ApiProvider):
         super(Version, self).__init__()
         self.entity = entity
         self.version = version
-        self.parent = parent
+        self._parent = parent
         self.children = []
         self.checked = False
 
-        if parent is not None:
-            parent.addChild(self)
+        if self._parent is not None:
+            self._parent.addChild(self)
 
         if self.entity is not None:
             self._getVersions(self.entity['id'])
@@ -23,8 +23,8 @@ class Version(ApiProvider):
         return False
 
     def isLatestVersion(self):
-        if self.parent and self.parent.entity:
-            return self.parent.entity['latest'] == self.version['id']
+        if self._parent and self._parent.entity:
+            return self._parent.entity['latest'] == self.version['id']
         else:
             return False
 
@@ -33,6 +33,9 @@ class Version(ApiProvider):
             image = (item for item in self.version['proxies'] if item["mediaType"] == 'thumb_small' or item["mediaType"] == 'thumb_big').next()
             return image['path']
         return False
+
+    def get_display_name(self):
+        return self.version['version']
 
     def getType(self):
         return 'version'
@@ -58,27 +61,39 @@ class Version(ApiProvider):
 
     def addChild(self, child):
         self.children.append(child)
-        child.parent = self
+        child._parent = self
 
-    def _parent(self):
-        return self.parent
+    def parent(self):
+        return self._parent
 
     def child(self, row):
-        return self.children[row]
+        if row - 1 == len(self.children):
+            return None
+        else:
+            return self.children[row]
+
 
     def childCount(self):
         return len(self.children)
 
     def row(self):
-        if self.parent is not None:
-            return self.parent.children.index(self)
+        if self._parent is not None:
+            return self._parent.children.index(self)
 
     def insertChild(self, position, child):
         if position < 0 or position > len(self.children):
             return False
 
         self.children.insert(position, child)
-        child.parent = self
+        child._parent = self
+        return True
+
+    def removeChild(self, position):
+        if position < 0 or position > len(self.children):
+            return False
+
+        child = self.children.pop(position)
+        child._parent = None
         return True
 
     def isChecked(self):
@@ -114,7 +129,7 @@ class Version(ApiProvider):
 
 class Output(Version):
     """docstring for Output"""
-    def __init__(self, output, parent):
+    def __init__(self, output, parent=None):
         super(Output, self).__init__(version=output, parent=parent)
 
     def getType(self):
@@ -125,6 +140,9 @@ class Output(Version):
 
     def setChecked(self, set):
         self.checked = set
+
+    def get_display_name(self):
+        return self.version['type']
 
     def log(self, tabLevel=-1):
         return '{name: %s}'%self.version['type']

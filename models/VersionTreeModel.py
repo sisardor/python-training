@@ -160,22 +160,21 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
 
     def parent(self, index):
         node = self.getNode(index)
-        parentNode = node._parent()
+        parent_node = node.parent()
 
-        if parentNode == self.rootNode:
+        if parent_node == self.rootNode:
             return QtCore.QModelIndex()
-        return self.createIndex(0, 0, parentNode)
+        return self.createIndex(0, 0, parent_node)
 
     def index(self, row, column, parent):
-        parentNode = self.getNode(parent)
+        parent_node = self.getNode(parent)
 
-        childItem = parentNode.child(row)
+        child_node = parent_node.child(row)
 
-        if childItem:
-            return self.createIndex(row, column, childItem)
+        if child_node:
+            return self.createIndex(row, column, child_node)
         else:
             return QtCore.QModelIndex()
-
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole:
@@ -225,27 +224,28 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
 
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
-
+        print 'setData'
         if index.isValid():
             if role == QtCore.Qt.CheckStateRole:
                 node = index.internalPointer()
                 node.setChecked(value)
                 if node.getType() == 'output':
-                    version = node._parent()
-                    self.shoppingCart.insertRows(0, version)
-
-                    # if value:
-                    #     self.shoppingCart.addItem(node)
-                    # else:
-                    #     self.shoppingCart.removeItem(node)
+                    outputJSON = node.version
+                    versionJSON = node.parent().version
+                    if value:
+                        self.shoppingCart.addOuput(versionJSON, outputJSON)
+                    else:
+                        self.shoppingCart.removeOuput(versionJSON, outputJSON)
                 else:
                     count = node.childCount()
-                    self.shoppingCart.insertRows(0, node)
-                    # for i in range(count):
-                    #     if value:
-                    #         self.shoppingCart.addItem(node.child(i))
-                    #     else:
-                    #         self.shoppingCart.removeItem(node.child(i))
+                    versionJSON = node.version
+                    for i in range(count):
+                        outputJSON = node.child(i).version
+
+                        if value:
+                            self.shoppingCart.addOuput(versionJSON, outputJSON)
+                        else:
+                            self.shoppingCart.removeOuput(versionJSON, outputJSON)
 
                 self.dataChanged.emit(index, 0)
                 return True

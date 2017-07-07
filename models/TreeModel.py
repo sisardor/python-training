@@ -178,9 +178,6 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         super(DataSource, self).__init__(*args, **kwargs)
         self.rootNode = root
 
-        if self.rootNode._parent() is None and self.rootNode.entity is None:
-            self.rootNode.setDataSource(self._getDataSource())
-
         self.EntityTypes = self.fetch(path='CommonFields')
 
         # fetch initial data

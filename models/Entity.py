@@ -50,13 +50,6 @@ class Entity(ApiProvider):
             self.insertChild(index, Entity("untitled", entity))
 
 
-
-    def setDataSource(self, dataSourece):
-        self.ds = dataSourece
-        response = self.ds._findById(self.projectName)
-        self.entity = response['data']
-        # print 'setDataSource ' , self.entity
-
     def getXTotalCount(self):
         headers = self.ds.getHeaders()
         if headers['x-total-count']:
