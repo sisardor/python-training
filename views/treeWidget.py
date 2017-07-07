@@ -2,7 +2,8 @@ import os
 import resources.icons
 import sys
 from PySide import QtGui, QtCore
-from models.tree_model import ComboDelegate
+
+from models.combobox_delegate import ComboboxDelegate
 from utils.pyside_dynamic import loadUi
 
 path = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +12,7 @@ class TreeWidget(QtGui.QTreeView):
     def __init__(self,  parent = None, *args):
         super(TreeWidget, self).__init__(parent)
         loadUi(os.path.join(path, 'ui/ui_tree.ui'), self)
-        self.uiTree.setItemDelegateForColumn(2, ComboDelegate(self))
+        self.uiTree.setItemDelegateForColumn(2, ComboboxDelegate(self))
         # self.uiTree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.uiTree.setIconSize(QtCore.QSize(37, 23))
         self.filelHeader = self.uiTree.header()

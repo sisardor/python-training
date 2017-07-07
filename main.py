@@ -31,6 +31,8 @@ except:
     print("Cannot import shiboken.")
     pass
 
+import resources.icons
+
 import sys
 sys.path.append("/mnt/x19/mavisdev/mavis_scripts/pydraulx")
 

@@ -1,7 +1,8 @@
 import os
 import sys
 import resources.icons
-from models.version_tree_model import VersionDelegate, VersionTreeModel
+from models.version_tree_delegate import VersionDelegate
+from models.version_tree_model import VersionTreeModel
 from models.version import Version
 from models.entity import Entity
 from models.tree_model import TreeModel
@@ -14,7 +15,6 @@ from views.treeWidget import TreeWidget
 from views.version_tree_widget import VersionTreeWidget
 
 path = os.path.dirname(os.path.abspath(__file__))
-
 
 
 class MainController(QtGui.QMainWindow):

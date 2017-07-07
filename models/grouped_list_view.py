@@ -23,7 +23,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
         return parentNode.childCount()
 
     def parent(self, index):
-        node = self.getNode(index)
+        node = self.get_node(index)
         parentNode = node.parent()
 
         if parentNode == self.rootNode:
@@ -31,21 +31,18 @@ class GroupedListView(QtCore.QAbstractItemModel):
         return self.createIndex(parentNode.row(), 0, parentNode)
 
     def index(self, row, column, parent=QtCore.QModelIndex()):
-        parentNode = self.getNode(parent)
-        # print 'index(%s, %s, %s)'%(row, column, parent)
+        parent_node = self.get_node(parent)
 
         try:
-            childItem = parentNode.child(row)
+            child_item = parent_node.child(row)
+            if child_item:
+                return self.createIndex(row, column, child_item)
+            else:
+                return QtCore.QModelIndex()
         except Exception as e:
             print e
             print 'index(%s, %s, %s)' % (row, column, parent)
-            print parentNode, parentNode.children
-
-
-        if childItem:
-            return self.createIndex(row, column, childItem)
-        else:
-            return QtCore.QModelIndex()
+            print parent_node, parent_node.children
 
     def data(self, index, role):
         if not index.isValid():
@@ -60,7 +57,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
                 else:
                     return node.version['type']
 
-    def getNode(self, index):
+    def get_node(self, index):
         if index.isValid():
             node = index.internalPointer()
             if node:
@@ -68,7 +65,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
         return self.rootNode
 
     def insertRows(self, position, rows, child, parent=QtCore.QModelIndex()):
-        parentNode = self.getNode(parent)
+        parentNode = self.get_node(parent)
 
         self.beginInsertRows(parent, position, position + rows - 1)
         parentNode.insertChild(position, child)
@@ -76,7 +73,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
         return True
 
     def removeRows(self, position, rows, parent=QtCore.QModelIndex()):
-        parentNode = self.getNode(parent)
+        parentNode = self.get_node(parent)
         self.beginRemoveRows(parent, position, position + rows - 1)
         for row in range(rows):
             success = parentNode.removeChild(position)
@@ -84,7 +81,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
         self.endRemoveRows()
         return success
 
-    def findlayer(self, name):
+    def find_node(self, name):
         """
         Find a layer in the model by it's name
         """
@@ -102,7 +99,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
         for i in range(count):
             child = self.rootNode.child(i)
             if child.version['id'] == versionJSON['id']:
-                child_index = self.findlayer(versionJSON['version'])
+                child_index = self.find_node(versionJSON['version'])
                 newOutput = Output(output=outputJSON)
                 self.insertRows(child.childCount(), 1, newOutput, child_index)
                 is_found = True
@@ -118,7 +115,7 @@ class GroupedListView(QtCore.QAbstractItemModel):
         return False
 
     def removeOuput(self, versionJSON, outputJSON):
-        child_index = self.findlayer(versionJSON['version'])
+        child_index = self.find_node(versionJSON['version'])
         node = child_index.internalPointer()
         # print 'before', node.children
         indices = [i for i, child in enumerate(node.children) if child.get_display_name() == outputJSON['type']]
@@ -128,7 +125,6 @@ class GroupedListView(QtCore.QAbstractItemModel):
         # print 'after', node.children
         if not node.children:
             self.removeRows(child_index.row(), 1)
-
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole:

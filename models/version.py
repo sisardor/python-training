@@ -104,7 +104,6 @@ class Version(ApiProvider):
         child._parent = None
         return True
 
-
     # ----------------------------------------------------------------------------------------------------
     # Private methods
     def _get_versions(self, entity_id=None):
@@ -133,6 +132,7 @@ class Version(ApiProvider):
 
     def __repr__(self):
         return self.log()
+
 
 class Output(Version):
     """docstring for Output"""
