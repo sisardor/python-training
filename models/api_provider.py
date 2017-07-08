@@ -20,8 +20,7 @@ class ApiProvider(object):
 
 
     def _patch(self, path=None, data=None):
-        pass
-
+        return self.conn.patch(path, data)
 
     def _find_by_id(self):
         pass

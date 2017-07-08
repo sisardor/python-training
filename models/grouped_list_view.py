@@ -1,6 +1,7 @@
 from PySide import QtCore
 from models.version import Version, Output
 
+GROUP_HEADER = QtCore.Qt.UserRole + 1
 
 class GroupedListView(QtCore.QAbstractItemModel):
     """docstring for GroupedListView"""
@@ -11,28 +12,45 @@ class GroupedListView(QtCore.QAbstractItemModel):
         else:
             self.rootNode = root
 
+    # Overriden public methods
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        node = index.internalPointer()
+
+        if role == QtCore.Qt.DisplayRole and index.column() == 0:
+                return node.get_display_name()
+        if index.column() == 0:
+            if role == GROUP_HEADER and node.get_type_info() == 'version':
+                return 'header'
+
+
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if section == 0:
+                return "Name"
+
     def columnCount(self, parent):
         return 1
 
     def rowCount(self, parent):
         if not parent.isValid():
-            parentNode = self.rootNode
+            parent_node = self.rootNode
         else:
-            parentNode = parent.internalPointer()
+            parent_node = parent.internalPointer()
 
-        return parentNode.childCount()
+        return parent_node.childCount()
 
     def parent(self, index):
-        node = self.get_node(index)
-        parentNode = node.parent()
+        node = self._get_node(index)
+        parent_node = node.parent()
 
-        if parentNode == self.rootNode:
+        if parent_node == self.rootNode:
             return QtCore.QModelIndex()
-        return self.createIndex(parentNode.row(), 0, parentNode)
+        return self.createIndex(parent_node.row(), 0, parent_node)
 
     def index(self, row, column, parent=QtCore.QModelIndex()):
-        parent_node = self.get_node(parent)
-
+        parent_node = self._get_node(parent)
         try:
             child_item = parent_node.child(row)
             if child_item:
@@ -44,53 +62,27 @@ class GroupedListView(QtCore.QAbstractItemModel):
             print 'index(%s, %s, %s)' % (row, column, parent)
             print parent_node, parent_node.children
 
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        node = index.internalPointer()
 
-        typeInfo = node.get_type_info()
-        if role == QtCore.Qt.DisplayRole:
-            if index.column() == 0:
-                if typeInfo == 'version':
-                    return node.version['version']
-                else:
-                    return node.version['type']
 
-    def get_node(self, index):
-        if index.isValid():
-            node = index.internalPointer()
-            if node:
-                return node
-        return self.rootNode
 
+
+    # Private class methods
     def insertRows(self, position, rows, child, parent=QtCore.QModelIndex()):
-        parentNode = self.get_node(parent)
+        parent_node = self._get_node(parent)
 
         self.beginInsertRows(parent, position, position + rows - 1)
-        parentNode.insertChild(position, child)
+        parent_node.insertChild(position, child)
         self.endInsertRows()
         return True
 
     def removeRows(self, position, rows, parent=QtCore.QModelIndex()):
-        parentNode = self.get_node(parent)
+        parent_node = self._get_node(parent)
         self.beginRemoveRows(parent, position, position + rows - 1)
         for row in range(rows):
-            success = parentNode.removeChild(position)
+            success = parent_node.removeChild(position)
 
         self.endRemoveRows()
         return success
-
-    def find_node(self, name):
-        """
-        Find a layer in the model by it's name
-        """
-        startindex = self.index(0, 0)
-        items = self.match(startindex, QtCore.Qt.DisplayRole, name, 1, QtCore.Qt.MatchExactly | QtCore.Qt.MatchWrap)
-        try:
-            return items[0]
-        except IndexError:
-            return QtCore.QModelIndex()
 
     def addOuput(self, versionJSON, outputJSON):
         is_found = False
@@ -99,23 +91,23 @@ class GroupedListView(QtCore.QAbstractItemModel):
         for i in range(count):
             child = self.rootNode.child(i)
             if child.version['id'] == versionJSON['id']:
-                child_index = self.find_node(versionJSON['version'])
-                newOutput = Output(output=outputJSON)
-                self.insertRows(child.childCount(), 1, newOutput, child_index)
+                child_index = self._find_node(versionJSON['version'])
+                new_output = Output(output=outputJSON)
+                self.insertRows(child.childCount(), 1, new_output, child_index)
                 is_found = True
                 break
 
         if not is_found:
-            newNode = Version(version=versionJSON)
-            newOutput = Output(output=outputJSON, parent=newNode)
+            new_node = Version(version=versionJSON)
+            new_output = Output(output=outputJSON, parent=new_node)
 
-            self.insertRows(count, 1, newNode)
+            self.insertRows(count, 1, new_node)
             return True
 
         return False
 
     def removeOuput(self, versionJSON, outputJSON):
-        child_index = self.find_node(versionJSON['version'])
+        child_index = self._find_node(versionJSON['version'])
         node = child_index.internalPointer()
         # print 'before', node.children
         indices = [i for i, child in enumerate(node.children) if child.get_display_name() == outputJSON['type']]
@@ -126,7 +118,21 @@ class GroupedListView(QtCore.QAbstractItemModel):
         if not node.children:
             self.removeRows(child_index.row(), 1)
 
-    def headerData(self, section, orientation, role):
-        if role == QtCore.Qt.DisplayRole:
-            if section == 0:
-                return "Name"
+    # Private methods
+    def _find_node(self, name):
+        """
+        Find a node in the model by it's name
+        """
+        startindex = self.index(0, 0)
+        items = self.match(startindex, QtCore.Qt.DisplayRole, name, 1, QtCore.Qt.MatchExactly | QtCore.Qt.MatchWrap)
+        try:
+            return items[0]
+        except IndexError:
+            return QtCore.QModelIndex()
+
+    def _get_node(self, index):
+        if index.isValid():
+            node = index.internalPointer()
+            if node:
+                return node
+        return self.rootNode

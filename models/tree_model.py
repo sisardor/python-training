@@ -1,19 +1,19 @@
 from PySide import QtGui, QtCore
 from entity import Entity
-from models.base_model import DataSource
+from models.api_provider import ApiProvider
 from utils.json2obj import json2obj
 
 LIMIT = 25
 
 
-class TreeModel(QtCore.QAbstractItemModel, DataSource):
+class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
     """docstring for TreeModel"""
     def __init__(self, root, parent=None, *args, **kwargs):
         super(TreeModel, self).__init__(parent)
-        super(DataSource, self).__init__(*args, **kwargs)
+        super(ApiProvider, self).__init__(*args, **kwargs)
         self.rootNode = root
-
-        self.EntityTypes = self.fetch(path='CommonFields')
+        response = self._find_all(path='CommonFields')
+        self.EntityTypes = response['data']
 
         # fetch initial data
         self.rootNode._fetch_children(id=self.rootNode.get_project_name(),
@@ -24,14 +24,74 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         pass
 
     # Overriden public methods
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        node = index.internalPointer()
+
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+            if index.column() == 0:
+                return node.entity['name']
+            elif index.column() == 1:
+                return node.entity['type']
+            elif index.column() == 2:
+                return node.entity['fields']['status']
+            elif index.column() == 3:
+                return node.entity['fields']['priority']
+            else:
+                return node.get_type_info()
+
+        if role == QtCore.Qt.DecorationRole:
+            if index.column() == 0:
+                type_info = node.get_type_info()
+                if type_info == "sequence":
+                    return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+                elif node.entity['category'] == "groups":
+                    image_path = node.get_thumbnail()
+                    if image_path:
+                        return QtGui.QIcon(QtGui.QPixmap(image_path))
+                elif node.entity['category'] == "tasks":
+                    return QtGui.QIcon(QtGui.QPixmap(":/icon-tasks.svg"))
+                else:
+                    url = 'http://10.0.0.146:8002/geotest/57ffe93aef8a9100011593ea/582a4918c9831f000149b0e3_sm.jpg'
+                    # download_url = QtCore.QUrl(url)
+                    # manager = QtNetwork.QNetworkAccessManager()
+                    # request = QtNetwork.QNetworkRequest(download_url)
+                    # reply = manager.get(request)
+                    # print reply
+
+
+                    # data = urllib.urlopen(url).read()
+                    # image = QtGui.QImage()
+                    # image.loadFromData(data)
+                    # return QtGui.QIcon(QtGui.QPixmap(image))
+
+                    return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        if index.isValid():
+            if role == QtCore.Qt.EditRole and index.column() == 2:
+                node = index.internalPointer()
+                result = node.set_field_status(value)
+                self.dataChanged.emit(index, index)
+                return True
+
+            if role == QtCore.Qt.EditRole:
+                node = index.internalPointer()
+                node.setProjectName(value)
+                self.dataChanged.emit(index, index)
+                return True
+        return False
+
     def hasChildren(self, index):
-        node = self.get_node(index)
+        node = self._get_node(index)
         if node.parent() is None:
             return True
         return node.hasChildren()
 
     def canFetchMore(self, index):
-        node = self.get_node(index)
+        node = self._get_node(index)
         if node.parent() is not None and self.hasChildren(index):
             if node.childCount() == node.entity['$dependencyCount']:
                 return False
@@ -43,7 +103,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
             return False
 
     def fetchMore(self, index):
-        node = self.get_node(index)
+        node = self._get_node(index)
         if node.parent() is not None:
             # print "expend -> ", node.entity['id']
             node._fetch_children(id=node.entity['id'])
@@ -82,82 +142,15 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
     def setColumnWidth(self, column, width):
         pass
 
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        node = index.internalPointer()
-
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            if index.column() == 0:
-                return node.entity['name']
-            elif index.column() == 1:
-                return node.entity['type']
-            elif index.column() == 2:
-                return node.entity['fields']['status']
-            elif index.column() == 3:
-                return node.entity['fields']['priority']
-            else:
-                return node.get_type_info()
-
-        if role == QtCore.Qt.DecorationRole:
-            if index.column() == 0:
-                typeInfo = node.get_type_info()
-                if typeInfo == "sequence":
-                    # url = 'http://10.0.0.146:8002/geotest/57d861566fef3a0001c879b1/580fdded7ad29f000132c694_med.jpg'
-                    # data = urllib.urlopen(url).read()
-                    # image = QtGui.QImage()
-                    # image.loadFromData(data)
-                    # return QtGui.QIcon(QtGui.QPixmap(image))
-                    return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
-                elif node.entity['category'] == "groups":
-                    imagePath = node.get_thumbnail()
-                    if imagePath:
-                        return QtGui.QIcon(QtGui.QPixmap(imagePath))
-                elif node.entity['category'] == "tasks":
-                    return QtGui.QIcon(QtGui.QPixmap(":/icon-tasks.svg"))
-                elif typeInfo == "Camera":
-                    return QtGui.QIcon(QtGui.QPixmap(":/Camera.jpg"))
-                else:
-                    url = 'http://10.0.0.146:8002/geotest/57ffe93aef8a9100011593ea/582a4918c9831f000149b0e3_sm.jpg'
-                    # download_url = QtCore.QUrl(url)
-                    # manager = QtNetwork.QNetworkAccessManager()
-                    # request = QtNetwork.QNetworkRequest(download_url)
-                    # reply = manager.get(request)
-                    # print reply
-
-
-                    # data = urllib.urlopen(url).read()
-                    # image = QtGui.QImage()
-                    # image.loadFromData(data)
-                    # return QtGui.QIcon(QtGui.QPixmap(image))
-
-                    return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        print '#### setData', index.column()
-        if index.isValid():
-            if role == QtCore.Qt.EditRole and index.column() == 2:
-                node = index.internalPointer()
-                result = node.set_field_status(value, ds=self._getDataSource())
-                self.dataChanged.emit(index, index)
-                return True
-
-            if role == QtCore.Qt.EditRole:
-                node = index.internalPointer()
-                node.setProjectName(value)
-                self.dataChanged.emit(index, index)
-                return True
-        return False
-
     def headerData(self, section, orientation, role):
         # if role == QtCore.Qt.DecorationRole:
         # 	print "QtCore.Qt.DecorationRole %s"%role
 
-        if role == QtCore.Qt.SizeHintRole:
-            if section == 0:
-                return QtCore.QSize(350, 25)
-            else:
-                return QtCore.QSize(100, 25)
+        # if role == QtCore.Qt.SizeHintRole:
+        #     if section == 0:
+        #         return QtCore.QSize(350, 25)
+        #     else:
+        #         return QtCore.QSize(100, 25)
 
         if role == QtCore.Qt.DisplayRole:
             if section == 0:
@@ -180,7 +173,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def parent(self, index):
-        node = self.get_node(index)
+        node = self._get_node(index)
         parentNode = node.parent()
 
         if parentNode == self.rootNode:
@@ -188,7 +181,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return self.createIndex(parentNode.row(), 0, parentNode)
 
     def index(self, row, column, parent):
-        parentNode = self.get_node(parent)
+        parentNode = self._get_node(parent)
 
         childItem = parentNode.child(row)
 
@@ -198,7 +191,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
             return QtCore.QModelIndex()
 
     # Internal class methods
-    def get_node(self, index):
+    def _get_node(self, index):
         if index.isValid():
             node = index.internalPointer()
             if node:
@@ -206,7 +199,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return self.rootNode
 
     def insertRows(self, position, rows, parent=QtCore.QModelIndex()):
-        parentNode = self.get_node(parent)
+        parentNode = self._get_node(parent)
 
         self.beginInsertRows(parent, position, position + rows - 1)
         for row in range(rows):
@@ -223,7 +216,7 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         return success
 
     def removeRows(self, position, rows, parent=QtCore.QModelIndex()):
-        parentNode = self.get_node(parent)
+        parentNode = self._get_node(parent)
         self.beginRemoveRows(parent, position, position + rows - 1)
         for row in range(rows):
             success = parentNode.removeChild(position)
@@ -231,7 +224,6 @@ class TreeModel(QtCore.QAbstractItemModel, DataSource):
         self.endRemoveRows()
         return success
 
-    """private"""
     def _getEntityType(self, field):
         return (item for item in self.EntityTypes if item["name"] == field).next()
 

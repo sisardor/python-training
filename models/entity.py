@@ -34,10 +34,10 @@ class Entity(ApiProvider):
     def childCount(self):
         return len(self.children)
 
-    def set_field_status(self, value, ds):
+    def set_field_status(self, value):
         entity = copy.deepcopy(self.entity)
         entity['fields']['status'] = value
-        result = ds.save(entity)
+        result = self._save(entity)
         if result:
             self.entity = result
         else:
@@ -72,7 +72,6 @@ class Entity(ApiProvider):
         self.children.append(child)
         child._parent = self
 
-
     def insertChild(self, position, child):
         if position < 0 or position > len(self.children):
             return False
@@ -94,6 +93,18 @@ class Entity(ApiProvider):
 
     def _has_more_children(self):
         return self.childCount() < self._x_total_count
+
+    def _save(self, model):
+        if model['id']:
+            try:
+                response = self._patch('Entities/%s'%model['id'], model)
+                return response['data']
+            except Exception as e:
+                print '======= Exception ======='
+                print e
+                return False
+        else:
+            return True
 
     def _fetch(self, id, **filter):
         filter['$dependencyCount'] = True

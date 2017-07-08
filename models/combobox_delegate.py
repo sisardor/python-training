@@ -7,10 +7,6 @@ BORDER_COLOR_FOR_DELEGATE = "#3e4041"
 
 
 class ComboboxDelegate(QtGui.QStyledItemDelegate):
-    """
-    A delegate that places a fully functioning QComboBox in every
-    cell of the column to which it's applied
-    """
     def __init__(self, parent=None):
         super(ComboboxDelegate, self).__init__(parent)
 

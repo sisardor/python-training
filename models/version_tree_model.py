@@ -1,7 +1,7 @@
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 ROW_HIGHT = 50
-
+LATEST_VERSION = QtCore.Qt.UserRole+1
 
 class VersionTreeModel(QtCore.QAbstractItemModel):
     """docstring for VersionTreeModel"""
@@ -9,6 +9,75 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
         super(VersionTreeModel, self).__init__(parent)
         self.rootNode = root
         self.shoppingCart = shoppingCart
+
+    def data(self, index, role):
+        if not index.isValid():
+            print 'error'
+            return None
+        node = index.internalPointer()
+        if role == QtCore.Qt.DecorationRole:
+            if index.column() == 0:
+                path = node.get_thumbnail()
+                if path:
+                    return QtGui.QIcon(QtGui.QPixmap(path))
+                return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+
+        typeInfo = node.get_type_info()
+        if role == QtCore.Qt.DisplayRole:
+            if index.column() == 0:
+                if typeInfo == 'version':
+                    return node.version['version']
+                else:
+                    return node.version['type']
+            elif index.column() == 1:
+                if typeInfo == 'version':
+                    return node.version['createdBy']
+                else:
+                    return '[N/A]'
+            elif index.column() == 2:
+                return node.version['createdAt']
+        # elif role == QtCore.Qt.SizeHintRole:
+        #     return QtCore.QSize(100,ROW_HIGHT)
+        elif role == QtCore.Qt.UserRole:
+            imagePath = node.get_thumbnail()
+            if imagePath:
+                return imagePath
+            else:
+                return ':/thumbnail-missing.svg'
+        elif role == LATEST_VERSION and node.is_latest_version():
+            return True
+        elif role == QtCore.Qt.CheckStateRole and index.column() == 0:
+            return node.isChecked()
+
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        print 'setData'
+        if index.isValid():
+            if role == QtCore.Qt.CheckStateRole:
+                node = index.internalPointer()
+                node.setChecked(value)
+                if node.get_type_info() == 'output':
+                    outputJSON = node.version
+                    versionJSON = node.parent().version
+                    if value:
+                        self.shoppingCart.addOuput(versionJSON, outputJSON)
+                    else:
+                        self.shoppingCart.removeOuput(versionJSON, outputJSON)
+                else:
+                    count = node.childCount()
+                    versionJSON = node.version
+                    for i in range(count):
+                        outputJSON = node.child(i).version
+
+                        if value:
+                            self.shoppingCart.addOuput(versionJSON, outputJSON)
+                        else:
+                            self.shoppingCart.removeOuput(versionJSON, outputJSON)
+
+                self.dataChanged.emit(index, 0)
+                return True
+
+        return False
 
     def rowCount(self, parent):
         if not parent.isValid():
@@ -53,73 +122,6 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
                 return "Published by"
             elif section == 2:
                 return "Modified"
-
-    def data(self, index, role):
-
-        if not index.isValid():
-            print 'error'
-            return None
-        node = index.internalPointer()
-        # if role == QtCore.Qt.DecorationRole:
-        #     if index.column() == 0:
-        #         path = node.get_thumbnail()
-        #         return QtGui.QIcon(QtGui.QPixmap(path))
-
-        typeInfo = node.get_type_info()
-        if role == QtCore.Qt.DisplayRole:
-            if index.column() == 0:
-                if typeInfo == 'version':
-                    return node.version['version']
-                else:
-                    return node.version['type']
-            elif index.column() == 1:
-                if typeInfo == 'version':
-                    return node.version['createdBy']
-                else:
-                    return '[N/A]'
-            elif index.column() == 2:
-                return node.version['createdAt']
-        elif role == QtCore.Qt.SizeHintRole:
-            return QtCore.QSize(100,ROW_HIGHT)
-        elif role == QtCore.Qt.UserRole:
-            imagePath = node.get_thumbnail()
-            if imagePath:
-                return imagePath
-            else:
-                return ':/thumbnail-missing.svg'
-
-        elif role == QtCore.Qt.CheckStateRole and index.column() == 0:
-            return node.isChecked()
-
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        print 'setData'
-        if index.isValid():
-            if role == QtCore.Qt.CheckStateRole:
-                node = index.internalPointer()
-                node.setChecked(value)
-                if node.get_type_info() == 'output':
-                    outputJSON = node.version
-                    versionJSON = node.parent().version
-                    if value:
-                        self.shoppingCart.addOuput(versionJSON, outputJSON)
-                    else:
-                        self.shoppingCart.removeOuput(versionJSON, outputJSON)
-                else:
-                    count = node.childCount()
-                    versionJSON = node.version
-                    for i in range(count):
-                        outputJSON = node.child(i).version
-
-                        if value:
-                            self.shoppingCart.addOuput(versionJSON, outputJSON)
-                        else:
-                            self.shoppingCart.removeOuput(versionJSON, outputJSON)
-
-                self.dataChanged.emit(index, 0)
-                return True
-
-        return False
 
     def flags(self, index):
         if index.column() == 0:

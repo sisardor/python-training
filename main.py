@@ -32,12 +32,7 @@ except:
     pass
 
 import resources.icons
-
-import sys
-sys.path.append("/mnt/x19/mavisdev/mavis_scripts/pydraulx")
-
-from connection import mavis as mavis
-from connection import pyside_LoginDialog
+FONT_PATH = '/mnt/x19/mavisdev/mavis_scripts/pydraulx/static/Open_Sans/OpenSans-Regular.ttf'
 
 def getMayaWindow():
     '''
@@ -61,51 +56,25 @@ def getMayaWindow():
 class App(QtGui.QWidget):
     def __init__(self, parent=None):
         super(App, self).__init__(parent)
-        print "App"
-        # self.conn = self.db_connect()
+
+        font_id = QtGui.QFontDatabase.addApplicationFont(FONT_PATH)
+        if font_id is not -1:
+            font_db = QtGui.QFontDatabase()
+
+            self.font_styles = font_db.styles('Open Sans')
+            self.font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
+            print font_id, self.font_styles, self.font_families
+            for font_family in self.font_families:
+                self.font = font_db.font(font_family, self.font_styles[0], 12)
+
+        QtGui.QApplication.setFont(self.font)
+
         self.ui = MainController()
         self.ui.show()
 
-    def db_connect(self):
-        '''
-        connect to the database. if getMavis return None show login dialog
-        '''
-        try:
-            # conn=mavis.Mavis(username=username, password=password)
-            conn = mavis.getMavis()
-            retry = False
-            # dont like whiles....but
-            while not conn:
-                try:
-                    # show the loging dialog
-                    dialog = pyside_LoginDialog.LoginDialog(parent=self, retry=retry)
-                    rval = dialog.exec_()
-                    if rval == QtGui.QDialog.Rejected:
-                        break
-
-                    self.username = dialog.username
-                    passwd = dialog.password
-                    # print outcome so we know something is happening
-                    print("username: %s password %s" % (self.username, passwd))
-                    conn = mavis.getMavis(username=self.username, password=passwd)
-                    # set user in the UI
-                    self.ui.setUser(self.username)
-                    retry = True
-                    break
-                except Exception, e:
-                    print "invalid user/passwd"
-                    print e
-                    retry = True
-                    continue
-            return conn
-        except Exception, e:
-            print mavis.__file__
-            print e
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-            traceback.print_stack()
-
 def run():
+
+    # family = QtGui.QFontDatabase.applicationFontFamilies(id).at(0)
     #get the current (Global) QApplication instance OR
     #create a new one if unavailable (standalone)
     # QtGui.QApplication.setStyle('motif') #"windows", "motif", "cde", "plastique", "windowsxp", or "macintosh".

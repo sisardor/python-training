@@ -7,11 +7,13 @@ BORDER_COLOR_FOR_DELEGATE = "#3e4041"
 THUMB_WIDTH = 70
 THUMB_HIEGHT = 40
 MARGIN = 5
+ROW_HIGHT = 50
 CHECKBOX_WIDTH = 25
 FONT_COLOR = QtGui.QPen(QtGui.QColor('#AAAAAA'), 0.5, QtCore.Qt.SolidLine)
 font = QtGui.QFont()
 font.setFamily(font.defaultFamily())
 fm = QtGui.QFontMetrics(font)
+LATEST_VERSION = QtCore.Qt.UserRole+1
 
 class VersionDelegate(QtGui.QStyledItemDelegate):
     BG_DEFAULT = QtGui.QBrush(BACKGROUND_COLOR)
@@ -35,7 +37,8 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
 
         # paint borders right, bottom
         painter.setPen(QtGui.QPen(QtGui.QColor(BORDER_COLOR_FOR_DELEGATE), 1))
-        painter.drawLine(option.rect.topRight(), option.rect.bottomRight())
+        if index.column() != 0:
+            painter.drawLine(option.rect.topLeft(), option.rect.bottomLeft())
         painter.drawLine(QtCore.QPoint(0, option.rect.bottom()), option.rect.bottomRight())
         painter.restore()
 
@@ -46,7 +49,7 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
                          THUMB_WIDTH, THUMB_HIEGHT)
         painter.drawPixmap(r, thumbnail_image)
 
-    def drawText(self, painter, rect, index, text):
+    def drawTextWithThumb(self, painter, rect, text):
         painter.save()
         painter.setPen(FONT_COLOR)
         r = QtCore.QRect(rect.left() + THUMB_WIDTH + MARGIN + MARGIN + CHECKBOX_WIDTH,
@@ -54,13 +57,9 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
                          rect.width() - THUMB_WIDTH - MARGIN,
                          rect.height())
         painter.drawText(r, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, text)
-        node = index.internalPointer()
-        if node.is_latest_version():
-            self.drawBadge(painter, rect, text, r)
-
         painter.restore()
 
-    def drawTextWithoutThumnail(self, painter, rect, text):
+    def drawText(self, painter, rect, text):
         painter.save()
         painter.setPen(FONT_COLOR)
         r = QtCore.QRect(rect.left() + MARGIN,
@@ -70,10 +69,12 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
         painter.drawText(r, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, text)
         painter.restore()
 
-    def drawBadge(self, painter, rect, text, r):
+    def drawBadge(self, painter, option, is_latest_version):
+        if not is_latest_version: return
+
         star_badge = QtGui.QPixmap(':/star-badge.svg')
-        r = QtCore.QRect(r.x() + fm.width(text) + MARGIN + MARGIN,
-                         rect.top() + (star_badge.height()/2),
+        r = QtCore.QRect(option.rect.right() - MARGIN - star_badge.width(),
+                         option.rect.top() + (star_badge.height()/2),
                          20,
                          20)
         painter.drawPixmap(r, star_badge)
@@ -89,13 +90,15 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
 
         thumbnail = index.data(QtCore.Qt.UserRole)
         text = index.data(QtCore.Qt.DisplayRole)
+        is_latest_version = index.data(LATEST_VERSION)
 
         self.drawBackground(painter, option, index, selected)
         if index.column() == 0:
+            self.drawBadge(painter, option, is_latest_version)
             self.drawThumbnail(painter, option, index, thumbnail)
-            self.drawText(painter, option.rect, index, text)
+            self.drawTextWithThumb(painter, option.rect, text)
         else:
-            self.drawTextWithoutThumnail(painter, option.rect, text)
+            self.drawText(painter, option.rect, text)
 
         # paint checkbox
         if index.column() == 0:
@@ -120,4 +123,11 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
             style.drawControl(QtGui.QStyle.CE_CheckBox, checkboxstyle, painter)
 
             painter.restore()
+
+    def sizeHint(self, option, index):
+        value = index.data(QtCore.Qt.SizeHintRole)
+        if value and value.isValid():
+            return QtCore.QSize(value)
+        else:
+            return QtCore.QSize(100, ROW_HIGHT)
 

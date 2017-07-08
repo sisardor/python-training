@@ -1,17 +1,22 @@
 import os, sys
 from PySide import QtGui, QtCore
-from PySide.QtGui import QHeaderView
+from models.version_tree_delegate import VersionDelegate
 
-from utils.pyside_dynamic import loadUi
 
-path = os.path.dirname(os.path.abspath(__file__))
 class VersionTreeWidget(QtGui.QTreeView):
     def __init__(self, parent=None):
         QtGui.QTreeView.__init__(self, parent)
         self.header().setStretchLastSection(True)
         self.setMinimumSize(QtCore.QSize(700, 0))
         self.setAnimated(True)
+        self.setItemDelegate(VersionDelegate())
 
+        self.setStyleSheet("""
+            QTreeView QHeaderView::section,
+            QTreeView {
+                font-family: Open Sans;
+            }
+        """)
 
 
 if __name__ == '__main__':
