@@ -35,21 +35,78 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="layoutWest">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMinimumSize</enum>
-      </property>
-     </layout>
-    </item>
-    <item row="0" column="1">
-     <layout class="QHBoxLayout" name="layoutMiddle"/>
-    </item>
-    <item row="0" column="2">
-     <layout class="QHBoxLayout" name="horizontalLayout"/>
-    </item>
-   </layout>
+   <widget class="QLineEdit" name="task_id_input">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>261</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="current_dir">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>301</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="baseSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>82</y>
+      <width>311</width>
+      <height>531</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="layoutWest">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMinimumSize</enum>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>335</x>
+      <y>12</y>
+      <width>621</width>
+      <height>601</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="layoutMiddle"/>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>967</x>
+      <y>12</y>
+      <width>271</width>
+      <height>601</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout"/>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

@@ -1,13 +1,19 @@
-import os, sys
-from PySide import QtGui, QtCore
-from models.version_tree_delegate import VersionDelegate
+import sys
+
+from PySide import QtGui
+
+from sources.delegates.version_tree_delegate import VersionDelegate
 
 
 class VersionTreeWidget(QtGui.QTreeView):
     def __init__(self, parent=None):
-        QtGui.QTreeView.__init__(self, parent)
+        super(VersionTreeWidget, self).__init__(parent)
         self.header().setStretchLastSection(True)
-        self.setMinimumSize(QtCore.QSize(700, 0))
+        self.header().setMovable(False)
+        # self.header().setResizeMode(2,QtGui.QHeaderView.Fixed)
+        # self.header().resizeSection(2, 200)
+        self.header().setResizeMode(QtGui.QHeaderView.Fixed)
+        # self.setMinimumSize(QtCore.QSize(700, 0))
         self.setAnimated(True)
         self.setItemDelegate(VersionDelegate())
 
@@ -18,10 +24,15 @@ class VersionTreeWidget(QtGui.QTreeView):
             }
         """)
 
+    def isExpanded(self, index):
+        print 'isExpanded'
+        return True
+
+
 
 if __name__ == '__main__':
     from utils.json2obj import json2obj
-    from models.entity import Entity
+    from sources.entity import Entity
 
     app = QtGui.QApplication(sys.argv)
 

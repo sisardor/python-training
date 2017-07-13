@@ -1,40 +1,51 @@
 from PySide import QtGui, QtCore
 from entity import Entity
-from models.api_provider import ApiProvider
+from sources.api_provider import ApiProvider
+from sources.constants import LIMIT, HEADER_HEIGHT
 from utils.json2obj import json2obj
-
-LIMIT = 25
 
 
 class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
     """docstring for TreeModel"""
+
     def __init__(self, root, parent=None, *args, **kwargs):
         super(TreeModel, self).__init__(parent)
         super(ApiProvider, self).__init__(*args, **kwargs)
         self.rootNode = root
         response = self._find_all(path='CommonFields')
-        self.EntityTypes = response['data']
+        self.CommonFields = response['data']
+
+        response2 = self._find_all(path='EntityTypes')
+        self.EntityTypes = response2['data']
+        self.EntityTypesDict = {}
+
+        for item in self.EntityTypes:
+            self.EntityTypesDict[item['name']] = item
 
         # fetch initial data
-        self.rootNode._fetch_children(id=self.rootNode.get_project_name(),
-                                      skip=0,
-                                      limit=LIMIT)
+        self.rootNode._fetch_children(id=self.rootNode.get_id(), skip=0, limit=LIMIT)
 
         self.numRows = self.rootNode.childCount()
+        # self.rootNode.insertChild(0, Node(text='..'))
         pass
 
     # Overriden public methods
-
     def data(self, index, role):
         if not index.isValid():
             return None
         node = index.internalPointer()
-
+        if role == QtCore.Qt.SizeHintRole:
+            return QtCore.QSize(100, HEADER_HEIGHT)
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            if index.column() == 0:
+            if node.get_type_info() == 'dir' and index.column() == 0:
+                return '..'
+            elif node.get_type_info() == 'dir' and index.column() == 1:
+                return None
+            elif index.column() == 0:
                 return node.entity['name']
             elif index.column() == 1:
-                return node.entity['type']
+                return self.EntityTypesDict[node.entity['type']]['label']
+                # return node.entity['type']
             elif index.column() == 2:
                 return node.entity['fields']['status']
             elif index.column() == 3:
@@ -43,7 +54,9 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
                 return node.get_type_info()
 
         if role == QtCore.Qt.DecorationRole:
-            if index.column() == 0:
+            if node.get_type_info() == 'dir':
+                return None
+            elif index.column() == 0:
                 type_info = node.get_type_info()
                 if type_info == "sequence":
                     return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
@@ -84,73 +97,12 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
                 return True
         return False
 
-    def hasChildren(self, index):
-        node = self._get_node(index)
-        if node.parent() is None:
-            return True
-        return node.hasChildren()
-
-    def canFetchMore(self, index):
-        node = self._get_node(index)
-        if node.parent() is not None and self.hasChildren(index):
-            if node.childCount() == node.entity['$dependencyCount']:
-                return False
-            return True
-        if self.rootNode._has_more_children():
-            return True
-        else:
-            # print(bcolors.FAIL + "\t end" + bcolors.ENDC)
-            return False
-
-    def fetchMore(self, index):
-        node = self._get_node(index)
-        if node.parent() is not None:
-            # print "expend -> ", node.entity['id']
-            node._fetch_children(id=node.entity['id'])
-        else:
-            remainder_rows = self.rootNode.xTotalCount - self.numRows
-            rows_to_fetch = min(LIMIT, remainder_rows)
-
-            # print bcolors.OKGREEN + "\t fetching... \t { skip: %s, limit: %s }" % (self.numRows, rows_to_fetch) + bcolors.ENDC
-            if rows_to_fetch > 0:
-                self.beginInsertRows(QtCore.QModelIndex(), self.numRows, self.numRows + rows_to_fetch - 1)
-
-                data = self.rootNode._fetch(id=self.rootNode.get_project_name(), skip=self.numRows, limit=rows_to_fetch)
-
-                jj = 0
-                for entity in data:
-                    tmp_count = self.numRows + jj
-                    child_node = Entity("untitled", entity)
-                    self.rootNode.insertChild(tmp_count, child_node)
-                    jj += 1
-
-                self.endInsertRows()
-                self.numRows += rows_to_fetch
-        return
-
-    def rowCount(self, parent):
-        if not parent.isValid():
-            parent_node = self.rootNode
-        else:
-            parent_node = parent.internalPointer()
-
-        return parent_node.childCount()
-
-    def columnCount(self, parent):
-        return 2
-
-    def setColumnWidth(self, column, width):
-        pass
-
     def headerData(self, section, orientation, role):
         # if role == QtCore.Qt.DecorationRole:
         # 	print "QtCore.Qt.DecorationRole %s"%role
 
-        # if role == QtCore.Qt.SizeHintRole:
-        #     if section == 0:
-        #         return QtCore.QSize(350, 25)
-        #     else:
-        #         return QtCore.QSize(100, 25)
+        if role == QtCore.Qt.SizeHintRole:
+            return QtCore.QSize(100, HEADER_HEIGHT)
 
         if role == QtCore.Qt.DisplayRole:
             if section == 0:
@@ -166,29 +118,89 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
             else:
                 return "Type"
 
+    def columnCount(self, parent):
+        return 2
+
+    def rowCount(self, parent):
+        if parent.column() > 0:
+            return 0
+        if not parent.isValid():
+            parent_node = self.rootNode
+        else:
+            parent_node = parent.internalPointer()
+        return parent_node.childCount()
+
+    def parent(self, index):
+        if not index.isValid():
+            return QtCore.QModelIndex()
+
+        node = self._get_node(index)
+        parent_node = node.parent()
+
+        if parent_node == self.rootNode:
+            return QtCore.QModelIndex()
+        return self.createIndex(parent_node.row(), 0, parent_node)
+
+    def index(self, row, column, parent=QtCore.QModelIndex()):
+        if self.hasIndex(row, column, parent):
+            parent_node = self._get_node(parent)
+
+            child_node = parent_node.child(row)
+
+            if child_node:
+                return self.createIndex(row, column, child_node)
+        return QtCore.QModelIndex()
+
     def flags(self, index):
         if index.column() == 2 or index.column() == 3:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
         else:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
-    def parent(self, index):
+    def fetchMore(self, index):
         node = self._get_node(index)
-        parentNode = node.parent()
-
-        if parentNode == self.rootNode:
-            return QtCore.QModelIndex()
-        return self.createIndex(parentNode.row(), 0, parentNode)
-
-    def index(self, row, column, parent):
-        parentNode = self._get_node(parent)
-
-        childItem = parentNode.child(row)
-
-        if childItem:
-            return self.createIndex(row, column, childItem)
+        if node.parent() is not None:
+            # print "expend -> ", node.entity['id']
+            node._fetch_children(id=node.entity['id'])
         else:
-            return QtCore.QModelIndex()
+            remainder_rows = self.rootNode._x_total_count - self.numRows
+            rows_to_fetch = min(LIMIT, remainder_rows)
+
+            # print bcolors.OKGREEN + "\t fetching... \t { skip: %s, limit: %s }" % (self.numRows, rows_to_fetch) + bcolors.ENDC
+            if rows_to_fetch > 0:
+                self.beginInsertRows(QtCore.QModelIndex(), self.numRows, self.numRows + rows_to_fetch - 1)
+
+                data = self.rootNode._fetch(id=self.rootNode.get_id(), skip=self.numRows, limit=rows_to_fetch)
+
+                jj = 0
+                for entity in data:
+                    tmp_count = self.numRows + jj
+                    child_node = Entity(entity=entity)
+                    self.rootNode.insertChild(tmp_count, child_node)
+                    jj += 1
+
+                self.endInsertRows()
+                self.numRows += rows_to_fetch
+        return
+
+    def canFetchMore(self, index):
+        node = self._get_node(index)
+        if node.parent() is not None and self.hasChildren(index):
+            if node.childCount() == node.entity['$dependencyCount']:
+                return False
+            return True
+        if self.rootNode._has_more_children():
+            return True
+        else:
+            # print(bcolors.FAIL + "\t end" + bcolors.ENDC)
+            return False
+
+    def hasChildren(self, index):
+        node = self._get_node(index)
+        if node.parent() is None:
+            return True
+        return node.hasChildren()
+
 
     # Internal class methods
     def _get_node(self, index):
@@ -197,6 +209,21 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
             if node:
                 return node
         return self.rootNode
+
+    def _find_node(self, name, startindex=None):
+        """
+        Find a node in the model by it's name
+        """
+        if not startindex:
+            startindex = self.index(0, 0)
+
+        if not startindex:
+            return QtCore.QModelIndex()
+        items = self.match(startindex, QtCore.Qt.DisplayRole, name, 1, QtCore.Qt.MatchExactly | QtCore.Qt.MatchWrap)
+        try:
+            return items[0]
+        except IndexError:
+            return QtCore.QModelIndex()
 
     def insertRows(self, position, rows, parent=QtCore.QModelIndex()):
         parentNode = self._get_node(parent)
@@ -225,10 +252,31 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
         return success
 
     def _getEntityType(self, field):
-        return (item for item in self.EntityTypes if item["name"] == field).next()
+        return (item for item in self.CommonFields if item["name"] == field).next()
+
+    def set_task_id(self,id):
+        pass
 
 
 
+class Node(object):
+    def __init__(self, text, parent=None):
+        self.text = text
+        self._parent = parent
+        if parent is not None:
+            parent.addChild(self)
+
+    def childCount(self):
+        return 0
+
+    def hasChildren(self):
+        return self.childCount()
+
+    def get_type_info(self):
+        return 'dir'
+
+    def parent(self):
+        return self._parent
 
 
 if __name__ == '__main__':

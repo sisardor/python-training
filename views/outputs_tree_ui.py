@@ -1,6 +1,6 @@
 from PySide import QtGui, QtCore
 
-from models.grouped_list_delegate import GroupedListDelegate
+from sources.delegates.grouped_list_delegate import GroupedListDelegate
 
 
 class OutputsTreeUI(QtGui.QTreeView):
@@ -13,7 +13,6 @@ class OutputsTreeUI(QtGui.QTreeView):
         self.setItemsExpandable(False)
         self.setItemDelegate(GroupedListDelegate())
         self.setRootIsDecorated(False)
-
         self.setModel(model)
         self.header().hide()
         self.setAttribute(QtCore.Qt.WA_MacShowFocusRect, 0)
@@ -27,6 +26,17 @@ class OutputsTreeUI(QtGui.QTreeView):
             QTreeView {
                 font-size:12px
                 
+            }
+            QTreeView
+            {
+                selection-background-color: transparent;
+            }
+
+            QTreeView::branch {
+                background-color: rgba(64, 64, 64, 0)!important;
+            }
+            QTreeView::branch:selected {
+                background: none;
             }
             QTreeView {
                 border: none;

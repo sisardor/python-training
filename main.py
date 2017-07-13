@@ -4,8 +4,8 @@ import traceback
 from mainController import MainController
 # from utils.borderlayout import BorderLayout
 from utils.json2obj import json2obj
-from models.entity import Entity
-from models.tree_model import TreeModel
+from sources.entity import Entity
+from sources.tree_model import TreeModel
 STANDALONE_MODE=False
 
 try:
@@ -60,10 +60,8 @@ class App(QtGui.QWidget):
         font_id = QtGui.QFontDatabase.addApplicationFont(FONT_PATH)
         if font_id is not -1:
             font_db = QtGui.QFontDatabase()
-
             self.font_styles = font_db.styles('Open Sans')
             self.font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
-            print font_id, self.font_styles, self.font_families
             for font_family in self.font_families:
                 self.font = font_db.font(font_family, self.font_styles[0], 12)
 

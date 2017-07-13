@@ -5,8 +5,6 @@ from connection import mavis as mavis
 
 class ApiProvider(object):
     conn = mavis.getMavis(accessToken='xyEKnvVCUE3AqUlhbPqOGp8ZqWdxCLWm5GSKn6MnxyU7O5jUTc7I2l4vXgh8JrZQ')
-    def __init__(self):
-        pass
 
     def _find_all(self, path=None, **filter):
         query = {'filter': filter}
@@ -17,7 +15,6 @@ class ApiProvider(object):
             print '======= Exception ======='
             print e
             return False
-
 
     def _patch(self, path=None, data=None):
         return self.conn.patch(path, data)

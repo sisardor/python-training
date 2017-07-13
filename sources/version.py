@@ -1,15 +1,19 @@
-from models.api_provider import ApiProvider
+import datetime
+
+from sources.api_provider import ApiProvider
 
 
 class Version(ApiProvider):
     """docstring for Version"""
+    __slots__ = ('entity', 'version','children', '_parent')
+
     def __init__(self, entity=None, version=None, parent=None, *args, **kwargs):
         super(Version, self).__init__()
         self.entity = entity
         self.version = version
         self._parent = parent
         self.children = []
-        self.checked = False
+        self.checked = 0 #QtCore.Qt.Unchecked == 0, QtCore.Qt.Checked == 2
 
         if self._parent is not None:
             self._parent.addChild(self)
@@ -34,6 +38,14 @@ class Version(ApiProvider):
         else:
             return False
 
+    def get_id(self):
+        return self.version['id']
+
+    def get_created_at(self):
+        d = datetime.datetime.strptime( "2017-04-05T00:07:50.847Z", "%Y-%m-%dT%H:%M:%S.%fZ" )
+        return d.strftime("%b %d, %Y, %I:%M %p")
+
+
     def get_display_name(self):
         return self.version['version']
 
@@ -57,6 +69,12 @@ class Version(ApiProvider):
         else:
             return 1 # QtCore.Qt.PartiallyChecked
 
+    def setCheckedState(self, func):
+        if func(self.version['id']):
+            self.checked = 2
+        for i, child in enumerate(self.children):
+            child.setCheckedState(func)
+
     def setChecked(self, set):
         if self.childCount():
             for child in self.children:
@@ -77,10 +95,7 @@ class Version(ApiProvider):
         return len(self.children)
 
     def child(self, row):
-        if row - 1 == len(self.children):
-            return None
-        else:
-            return self.children[row]
+        return self.children[row]
 
     def row(self):
         if self._parent is not None:
@@ -121,6 +136,7 @@ class Version(ApiProvider):
                     Output(output=output, parent=v_node)
 
             self.insertChild(i, v_node)
+
 
 
 

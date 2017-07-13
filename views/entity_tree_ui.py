@@ -1,6 +1,6 @@
 from PySide import QtGui, QtCore
-
-from models.combobox_delegate import ComboboxDelegate
+from sources.delegates.combobox_delegate import ComboboxDelegate
+from sources.delegates.entity_tree_delegate import EntityTreeDelegate
 
 
 class EntityTreeUI(QtGui.QTreeView):
@@ -13,6 +13,8 @@ class EntityTreeUI(QtGui.QTreeView):
         self.setMinimumSize(QtCore.QSize(302, 0))
         self.setMaximumSize(QtCore.QSize(302, 1500))
 
+        self.setItemDelegate(EntityTreeDelegate(self))
+
         self.setModel(model)
         self.setStyleSheet("""
             QTreeView QHeaderView::section,
@@ -20,6 +22,16 @@ class EntityTreeUI(QtGui.QTreeView):
 
                 font-size:12px
             }
+             # QTreeView::branch:has-children:!has-siblings:closed,
+             # QTreeView::branch:closed:has-children:has-siblings {
+             #         border-image: none;
+             #         image: url(:/icon-chevronright.svg);
+             # }
+             # QTreeView::branch:open:has-children:!has-siblings,
+             # QTreeView::branch:open:has-children:has-siblings  {
+             #         border-image: none;
+             #         image: url(:/icon-chevrondown.svg);
+             # }
         """)
 
     def resizeEvent(self, event):

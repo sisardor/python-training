@@ -1,9 +1,8 @@
 from PySide import QtGui, QtCore
 from PySide.QtGui import QColor, QStyle
 
+from sources.constants import *
 from utils.detect_color import detectColor
-
-BORDER_COLOR_FOR_DELEGATE = "#3e4041"
 
 
 class ComboboxDelegate(QtGui.QStyledItemDelegate):

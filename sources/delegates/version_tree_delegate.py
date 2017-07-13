@@ -1,19 +1,15 @@
 from PySide import QtGui, QtCore
+from sources.constants import BORDER_COLOR_FOR_DELEGATE, THUMB_WIDTH, CHECKBOX_WIDTH, MARGIN, THUMB_HIEGHT, \
+    LATEST_VERSION, ROW_HIGHT
 
 BACKGROUND_COLOR = QtGui.QColor('#2c2f30')
 BACKGROUND_COLOR_SELECT = QtGui.QColor('#575858')
 CHILD_NODE_BG_COLOR = QtGui.QColor('#1d2022')
-BORDER_COLOR_FOR_DELEGATE = "#3e4041"
-THUMB_WIDTH = 70
-THUMB_HIEGHT = 40
-MARGIN = 5
-ROW_HIGHT = 50
-CHECKBOX_WIDTH = 25
 FONT_COLOR = QtGui.QPen(QtGui.QColor('#AAAAAA'), 0.5, QtCore.Qt.SolidLine)
 font = QtGui.QFont()
 font.setFamily(font.defaultFamily())
 fm = QtGui.QFontMetrics(font)
-LATEST_VERSION = QtCore.Qt.UserRole+1
+
 
 class VersionDelegate(QtGui.QStyledItemDelegate):
     BG_DEFAULT = QtGui.QBrush(BACKGROUND_COLOR)
@@ -82,10 +78,12 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         selected = False
-        if option.state & QtGui.QStyle.State_Selected:
-            painter.fillRect(option.rect, option.palette.highlight())
+        if option.state & QtGui.QStyle.State_MouseOver:
+            # print 'mouse over'
+            pass
 
         if option.state & QtGui.QStyle.State_Selected:
+            painter.fillRect(option.rect, option.palette.highlight())
             selected = True
 
         thumbnail = index.data(QtCore.Qt.UserRole)
@@ -126,8 +124,9 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
 
     def sizeHint(self, option, index):
         value = index.data(QtCore.Qt.SizeHintRole)
+
         if value and value.isValid():
             return QtCore.QSize(value)
         else:
-            return QtCore.QSize(100, ROW_HIGHT)
+            return QtCore.QSize(190, ROW_HIGHT)
 

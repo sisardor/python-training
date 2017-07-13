@@ -1,13 +1,15 @@
 import copy
-from models.api_provider import ApiProvider
+from sources.api_provider import ApiProvider
 from utils.bcolors import bcolors
 
 
 class Entity(ApiProvider):
     """docstring for Node"""
-    def __init__(self, projectName=None, entity=None, parent=None):
+    __slots__ = ('entity', 'children', '_parent')
+
+    def __init__(self, id=None, current_loaded_entity_id=None, entity=None, parent=None):
         super(Entity, self).__init__()
-        self.projectName = projectName
+        self.id = id
         self.entity = entity
         self.children = []
         self._parent = parent
@@ -16,14 +18,42 @@ class Entity(ApiProvider):
         if self._parent is not None:
             self._parent.addChild(self)
 
+        if self.id is not None:
+            self.entity = self._fetch_by_id(id=self.id)
+
+        if current_loaded_entity_id is not None:
+            print 'current_loaded_entity_id', current_loaded_entity_id
+            data = self._fetch_ancestors(id=current_loaded_entity_id)
+            # print data
+            try:
+                asset = (item for item in data if item["category"] == 'assets').next()
+                if asset:
+                    self.entity = asset
+                    return
+            except:
+                pass
+
+            try:
+                group = (item for item in data if item["category"] == 'groups').next()
+                if group:
+                    self.entity = group
+                    return
+            except:
+                raise
+
+
+
     # ========================================================================
     # Public methods
 
     def parent(self):
         return self._parent
 
-    def get_project_name(self):
-        return self.projectName
+    def get_display_name(self):
+        return self.entity['name']
+
+    def get_id(self):
+        return self.entity['id']
 
     def child(self, row):
         return self.children[row]
@@ -107,6 +137,7 @@ class Entity(ApiProvider):
             return True
 
     def _fetch(self, id, **filter):
+
         filter['$dependencyCount'] = True
         filter['order'] = 'orderNum ASC'
         filter['include'] = ['media']
@@ -115,6 +146,17 @@ class Entity(ApiProvider):
         remainder_rows = self._x_total_count - self.childCount()
         rows_to_fetch = min(25, remainder_rows)
 
+        return response['data']
+
+    def _fetch_by_id(self, id, **filter):
+        filter['include'] = ['media']
+        response = self._find_all(path='Entities/%s' % id, **filter)
+        return response['data']
+
+    def _fetch_ancestors(self, id, **filter):
+        filter['include'] = ['media']
+        print id, filter
+        response = self._find_all(path='Entities/%s/tree' % id, **filter)
         return response['data']
 
     def _fetch_children(self, id, **filter):
@@ -127,21 +169,10 @@ class Entity(ApiProvider):
         if self._parent is None:
             self._x_total_count = int(response['headers']['x-total-count'])
 
-        child_count = self.childCount()
+        # child_count = self.childCount()
         for index, entity in enumerate(entities):
             # print child_count + index, entity
-            self.insertChild(index, Entity("untitled", entity))
-
-
-
-
-
-
-
-
-
-
-
+            self.insertChild(index, Entity(entity=entity))
 
     def log(self):
         return '{name: %s}'%self.entity['name']
