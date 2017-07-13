@@ -1,7 +1,8 @@
 from PySide import QtGui, QtCore
 from entity import Entity
 from sources.api_provider import ApiProvider
-from sources.constants import LIMIT, HEADER_HEIGHT
+from sources.constants import LIMIT, HEADER_HEIGHT, ROW_HEIGHT
+from sources.delegates.grouped_list_delegate import FONT_COLOR
 from utils.json2obj import json2obj
 
 
@@ -35,7 +36,7 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
             return None
         node = index.internalPointer()
         if role == QtCore.Qt.SizeHintRole:
-            return QtCore.QSize(100, HEADER_HEIGHT)
+            return QtCore.QSize(100, ROW_HEIGHT)
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if node.get_type_info() == 'dir' and index.column() == 0:
                 return '..'
@@ -81,6 +82,12 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
                     # return QtGui.QIcon(QtGui.QPixmap(image))
 
                     return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+
+        if role == QtCore.Qt.BackgroundRole:
+            return QtGui.QBrush(QtGui.QColor('#2c2f30'))
+
+        if role == QtCore.Qt.ForegroundRole:
+            return QtGui.QBrush(QtGui.QColor('#AAAAAA'))
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if index.isValid():

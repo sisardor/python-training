@@ -1,10 +1,10 @@
 import sys
 
-sys.path.append("/mnt/x19/mavisdev/mavis_scripts/pydraulx")
+sys.path.append("/Users/zeromax/Github/pydraulx")
 from connection import mavis as mavis
 
 class ApiProvider(object):
-    conn = mavis.getMavis(accessToken='xyEKnvVCUE3AqUlhbPqOGp8ZqWdxCLWm5GSKn6MnxyU7O5jUTc7I2l4vXgh8JrZQ')
+    conn = mavis.getMavis(accessToken='cMl1WoLtQqzuKZ8L68EM9iJzRmF8t6PgWKw8PDtWu0baLkvHw7hW2cYDCBITr6uC')
 
     def _find_all(self, path=None, **filter):
         query = {'filter': filter}

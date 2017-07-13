@@ -34,7 +34,7 @@ class MainController(QtGui.QMainWindow):
         self.current_dir.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
         self.current_dir.setContentsMargins(0, 0, 0, 0)
         self.current_dir.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
-        self.project_model = Entity(id='skyline')
+        self.project_model = Entity(id='580799dede2171292a05a0d6')
         self.current_dir.setText(self.project_model.get_display_name())
         self.project_tree_model = TreeModel(root=self.project_model)
         self.project_tree_view = EntityTreeUI(model=self.project_tree_model)

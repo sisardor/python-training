@@ -1,6 +1,6 @@
 from PySide import QtCore, QtGui
 
-from sources.constants import LATEST_VERSION, NODE_ID, ROW_HIGHT, HEADER_HEIGHT
+from sources.constants import LATEST_VERSION, NODE_ID, ROW_HEIGHT, HEADER_HEIGHT
 
 
 class VersionTreeModel(QtCore.QAbstractItemModel):

@@ -2,6 +2,7 @@ from PySide import QtGui, QtCore
 from PySide.QtGui import QColor, QPalette, QBrush, QStyledItemDelegate
 
 from sources.constants import MARGIN
+from sources.delegates.grouped_list_delegate import FONT_COLOR
 from sources.entity import Entity
 
 
@@ -22,7 +23,7 @@ class EntityTreeDelegate(QtGui.QStyledItemDelegate):
             if option.state & QtGui.QStyle.State_Selected:
                 bg_color = option.palette.color(QPalette.Active, QPalette.Highlight)
             else:
-                bg_color = QColor('#9ED764')#model.data(index, QtCore.Qt.BackgroundRole)
+                bg_color = QColor('#2c2f30')#model.data(index, QtCore.Qt.BackgroundRole)
             r2 = QtCore.QRect(0,
                              option.rect.top(),
                              option.rect.width() + option.rect.left(),
@@ -49,16 +50,28 @@ class EntityTreeDelegate(QtGui.QStyledItemDelegate):
                 # print branch_option
                 painter.drawPixmap(branch_option.rect, thumbnail_image)
 
-            textrect = QtCore.QRect(r.left() + MARGIN, r.top(), r.width() - ((5 * i) / 2), r.height())
+            # textrect = QtCore.QRect(r.left() + MARGIN, r.top()-10, r.width() - ((5 * i) / 2), r.height())
             text = model.data(index, QtCore.Qt.DisplayRole)#self.elidedText(option.fontMetrics, textrect.width(), QtCore.Qt.ElideMiddle,
                                   # model.data(index, QtCore.Qt.DisplayRole).toString())
-            # painter.setFont(model.data(index, QtCore.Qt.FontRole).toPyObject())
-            # painter.setPen(QtGui.QPen(model.data(index, QtCore.Qt.ForegroundRole).toPyObject()))
-            style.drawItemText(painter, textrect, QtCore.Qt.AlignLeft,
-                               option.palette, self.view.isEnabled(), text)
+            # painter.setFont(model.data(index, QtCore.Qt.FontRole))
+            # painter.setPen(QtGui.QPen(model.data(index, QtCore.Qt.ForegroundRole)))
+            # style.drawItemText(painter, textrect, QtCore.Qt.AlignLeft,
+            #                    option.palette, self.view.isEnabled(), text)
+
+            self.drawText(painter, option.rect, text)
             painter.restore()
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
+
+    def drawText(self, painter, rect, text):
+        painter.save()
+        painter.setPen(FONT_COLOR)
+        r = QtCore.QRect(rect.left() + MARGIN,
+                         rect.top(),
+                         rect.width() - MARGIN,
+                         rect.height())
+        painter.drawText(r, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, text)
+        painter.restore()
 
     def paintX(self, painter, option, index):
         options = QtGui.QStyleOptionViewItemV4(option)

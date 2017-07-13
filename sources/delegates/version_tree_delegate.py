@@ -1,6 +1,6 @@
 from PySide import QtGui, QtCore
 from sources.constants import BORDER_COLOR_FOR_DELEGATE, THUMB_WIDTH, CHECKBOX_WIDTH, MARGIN, THUMB_HIEGHT, \
-    LATEST_VERSION, ROW_HIGHT
+    LATEST_VERSION, ROW_HEIGHT
 
 BACKGROUND_COLOR = QtGui.QColor('#2c2f30')
 BACKGROUND_COLOR_SELECT = QtGui.QColor('#575858')
@@ -128,5 +128,5 @@ class VersionDelegate(QtGui.QStyledItemDelegate):
         if value and value.isValid():
             return QtCore.QSize(value)
         else:
-            return QtCore.QSize(190, ROW_HIGHT)
+            return QtCore.QSize(190, ROW_HEIGHT)
 
