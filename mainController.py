@@ -24,7 +24,10 @@ class MainController(QtGui.QMainWindow):
         loadUi(os.path.join(path, 'views/ui/mainwindow.ui'), self)
 
         self.task_id_input.textChanged.connect(self.inputChange)
-
+        currentWorkingTask = self.getEnvironment_id('HDX_TASK_ID')
+        print '\n\n=================='
+        print currentWorkingTask
+        print "==================\n\n"
         self.shoppingCart = GroupedListView()
         self.outputs_tree_ui = OutputsTreeUI(model=self.shoppingCart)
 
@@ -34,7 +37,12 @@ class MainController(QtGui.QMainWindow):
         self.current_dir.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
         self.current_dir.setContentsMargins(0, 0, 0, 0)
         self.current_dir.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
-        self.project_model = Entity(id='580799dede2171292a05a0d6')
+        self.project_model = Entity(id='skyline')
+        if currentWorkingTask:
+            self.project_model = Entity(current_loaded_entity_id=currentWorkingTask)
+        else:
+            self.project_model = Entity(id='skyline')
+
         self.current_dir.setText(self.project_model.get_display_name())
         self.project_tree_model = TreeModel(root=self.project_model)
         self.project_tree_view = EntityTreeUI(model=self.project_tree_model)
@@ -85,7 +93,21 @@ class MainController(QtGui.QMainWindow):
         # self.version_tree_view.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
         self.version_tree_view.header().resizeSection(0, 370)
 
-
+    def getEnvironment_id(self, id_key=None):
+        '''
+        Check the current environment for
+        the ID of the latest thing we were working on.
+        One of a possible:
+        ['HDX_ENTITY_ID', 'HDX_TASK_ID', 'HDX_VERSION_ID']
+        return <str> id if id_key is NOT NONE, OR <dict>
+        '''
+        rVal={}
+        for possibleId in ['HDX_ENTITY_ID', 'HDX_TASK_ID', 'HDX_VERSION_ID']:
+            if possibleId  in os.environ:
+                rVal[possibleId]=os.environ[possibleId]
+        if id_key and id_key in rVal:
+            return rVal[id_key]
+        return None
 
 
 

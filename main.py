@@ -65,7 +65,7 @@ class App(QtGui.QWidget):
             for font_family in self.font_families:
                 self.font = font_db.font(font_family, self.font_styles[0], 12)
 
-        # QtGui.QApplication.setFont(self.font)
+        QtGui.QApplication.setFont(self.font)
 
         self.ui = MainController()
         self.ui.show()

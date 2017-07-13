@@ -1,6 +1,7 @@
 from PySide import QtCore, QtGui
 
-from sources.constants import LATEST_VERSION, NODE_ID, ROW_HEIGHT, HEADER_HEIGHT
+from sources.constants import LATEST_VERSION, NODE_ID, ROW_HEIGHT, HEADER_HEIGHT, THUMB_WIDTH, MARGIN, \
+    ROW_HEIGHT_VERSION
 
 
 class VersionTreeModel(QtCore.QAbstractItemModel):
@@ -17,6 +18,9 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
 
         self.shoppingCart.removeItem.connect(self._uncheck_item)
 
+    def is_equal(self, ins):
+        return self.rootNode.get_entity_id() == ins.rootNode.get_entity_id()
+
     # Overriden public methods
     def data(self, index, role):
         # if role == QtCore.Qt.DisplayRole:
@@ -29,8 +33,9 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
             if index.column() == 0:
                 path = node.get_thumbnail()
                 if path:
-                    return QtGui.QIcon(QtGui.QPixmap(path))
-                return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+                    return QtGui.QPixmap(path).scaled(THUMB_WIDTH, ROW_HEIGHT_VERSION - (MARGIN * 2), QtCore.Qt.KeepAspectRatio)
+                return QtGui.QPixmap(":/thumbnail-missing.svg")\
+                    .scaled(THUMB_WIDTH, ROW_HEIGHT_VERSION - (MARGIN * 2), QtCore.Qt.KeepAspectRatio)
 
         type_info = node.get_type_info()
         if role == QtCore.Qt.DisplayRole:
@@ -48,8 +53,8 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
                     return '[N/A]'
             elif index.column() == 2:
                 return node.get_created_at()
-        # elif role == QtCore.Qt.SizeHintRole:
-        #     return QtCore.QSize(100,ROW_HIGHT)
+        elif role == QtCore.Qt.SizeHintRole:
+            return QtCore.QSize(100,ROW_HEIGHT_VERSION)
         elif role == QtCore.Qt.UserRole:
             imagePath = node.get_thumbnail()
             if imagePath:
@@ -62,6 +67,15 @@ class VersionTreeModel(QtCore.QAbstractItemModel):
             return True
         elif role == QtCore.Qt.CheckStateRole and index.column() == 0:
             return node.isChecked()
+
+        if role == QtCore.Qt.BackgroundRole:
+            if node.parent()._parent:
+                return QtGui.QBrush(QtGui.QColor('#1d2022'))
+            else:
+                return QtGui.QBrush(QtGui.QColor('#2c2f30'))
+
+        if role == QtCore.Qt.ForegroundRole:
+            return QtGui.QBrush(QtGui.QColor('#AAAAAA'))
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
 

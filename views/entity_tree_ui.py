@@ -13,7 +13,7 @@ class EntityTreeUI(QtGui.QTreeView):
         self.setMinimumSize(QtCore.QSize(302, 0))
         self.setMaximumSize(QtCore.QSize(302, 1500))
 
-        # self.setItemDelegate(EntityTreeDelegate(self))
+        self.setItemDelegate(EntityTreeDelegate(self))
 
         self.setModel(model)
         self.setStyleSheet("""
@@ -32,6 +32,7 @@ class EntityTreeUI(QtGui.QTreeView):
              #         border-image: none;
              #         image: url(:/icon-chevrondown.svg);
              # }
+             QTreeView::item{border-color:#FFFF00;}
         """)
 
     def resizeEvent(self, event):

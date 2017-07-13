@@ -1,10 +1,12 @@
 import sys
 
-sys.path.append("/Users/zeromax/Github/pydraulx")
+sys.path.append("/mnt/x19/mavisdev/mavis_scripts/pydraulx")
 from connection import mavis as mavis
 
 class ApiProvider(object):
-    conn = mavis.getMavis(accessToken='cMl1WoLtQqzuKZ8L68EM9iJzRmF8t6PgWKw8PDtWu0baLkvHw7hW2cYDCBITr6uC')
+    conn = mavis.getMavis()
+    if not conn:
+        conn = mavis.getMavis(accessToken='CMlbjIRLtbcBQP8K0fzebTfOdzxOf75mKSYBzKcaad4OwlDKqooRIyHQ7ztT18lo')
 
     def _find_all(self, path=None, **filter):
         query = {'filter': filter}
@@ -14,6 +16,9 @@ class ApiProvider(object):
         except Exception as e:
             print '======= Exception ======='
             print e
+            if self.conn is None:
+                print 'Mavis is not initialized'
+
             return False
 
     def _patch(self, path=None, data=None):

@@ -28,18 +28,22 @@ class Version(ApiProvider):
         if self.version['proxies'] or hasattr(self.version, 'proxies'):
             image = (item for item in self.version['proxies']
                      if item["mediaType"] == 'thumb_small'
-                     or item["mediaType"] == 'thumb_big').next()
+                     or item["mediaType"] == 'thumb_big'
+                     or item["mediaType"] == 'thumb_medium').next()
             return image['path']
         return False
 
     def is_latest_version(self):
-        if self._parent and self._parent.entity:
+        try:
             return self._parent.entity['latest'] == self.version['id']
-        else:
+        except:
             return False
 
     def get_id(self):
         return self.version['id']
+
+    def get_entity_id(self):
+        return self.entity['id'] if self.entity else None
 
     def get_created_at(self):
         d = datetime.datetime.strptime( "2017-04-05T00:07:50.847Z", "%Y-%m-%dT%H:%M:%S.%fZ" )

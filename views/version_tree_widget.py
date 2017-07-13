@@ -16,13 +16,17 @@ class VersionTreeWidget(QtGui.QTreeView):
         # self.setMinimumSize(QtCore.QSize(700, 0))
         self.setAnimated(True)
         self.setItemDelegate(VersionDelegate())
-
+        self.model = None
         self.setStyleSheet("""
             QTreeView QHeaderView::section,
             QTreeView {
                 font-family: Open Sans;
             }
         """)
+    def setModel(self, model):
+        if self.model and self.model.is_equal(model): return
+        self.model = model
+        super(VersionTreeWidget, self).setModel(self.model)
 
     def isExpanded(self, index):
         print 'isExpanded'

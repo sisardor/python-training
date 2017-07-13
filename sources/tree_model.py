@@ -1,7 +1,7 @@
 from PySide import QtGui, QtCore
 from entity import Entity
 from sources.api_provider import ApiProvider
-from sources.constants import LIMIT, HEADER_HEIGHT, ROW_HEIGHT
+from sources.constants import LIMIT, HEADER_HEIGHT, ROW_HEIGHT, THUMB_WIDTH, THUMB_HIEGHT, MARGIN
 from sources.delegates.grouped_list_delegate import FONT_COLOR
 from utils.json2obj import json2obj
 
@@ -54,21 +54,25 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
             else:
                 return node.get_type_info()
 
+
         if role == QtCore.Qt.DecorationRole:
             if node.get_type_info() == 'dir':
                 return None
             elif index.column() == 0:
                 type_info = node.get_type_info()
                 if type_info == "sequence":
-                    return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+                    return QtGui.QPixmap(":/thumbnail-missing.svg")\
+                        .scaled(THUMB_WIDTH, ROW_HEIGHT - (MARGIN * 2), QtCore.Qt.KeepAspectRatio)
                 elif node.entity['category'] == "groups":
                     image_path = node.get_thumbnail()
                     if image_path:
-                        return QtGui.QIcon(QtGui.QPixmap(image_path))
+                        return QtGui.QPixmap(image_path)\
+                            .scaled(THUMB_WIDTH, ROW_HEIGHT - (MARGIN * 2), QtCore.Qt.KeepAspectRatio)
+                    # return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
                 elif node.entity['category'] == "tasks":
                     return QtGui.QIcon(QtGui.QPixmap(":/icon-tasks.svg"))
                 else:
-                    url = 'http://10.0.0.146:8002/geotest/57ffe93aef8a9100011593ea/582a4918c9831f000149b0e3_sm.jpg'
+                    # url = 'http://10.0.0.146:8002/geotest/57ffe93aef8a9100011593ea/582a4918c9831f000149b0e3_sm.jpg'
                     # download_url = QtCore.QUrl(url)
                     # manager = QtNetwork.QNetworkAccessManager()
                     # request = QtNetwork.QNetworkRequest(download_url)
@@ -81,10 +85,14 @@ class TreeModel(QtCore.QAbstractItemModel, ApiProvider):
                     # image.loadFromData(data)
                     # return QtGui.QIcon(QtGui.QPixmap(image))
 
-                    return QtGui.QIcon(QtGui.QPixmap(":/thumbnail-missing.svg"))
+                    return QtGui.QPixmap(":/thumbnail-missing.svg")\
+                        .scaled(THUMB_WIDTH, ROW_HEIGHT - (MARGIN * 2), QtCore.Qt.KeepAspectRatio)
 
         if role == QtCore.Qt.BackgroundRole:
-            return QtGui.QBrush(QtGui.QColor('#2c2f30'))
+            if node.parent()._parent:
+                return QtGui.QBrush(QtGui.QColor('#1d2022'))
+            else:
+                return QtGui.QBrush(QtGui.QColor('#2c2f30'))
 
         if role == QtCore.Qt.ForegroundRole:
             return QtGui.QBrush(QtGui.QColor('#AAAAAA'))
